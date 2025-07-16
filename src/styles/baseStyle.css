@@ -1,0 +1,26 @@
+@layer base {
+  html {
+    font-family: Pretendard, sans-serif;
+  }
+
+  /* border 테두리 기본 색상 지정 */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  /* 버튼에 cursor: pointer를 기본적으로 적용 */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* input, textarea 포커스 제거 */
+  input:focus,
+  textarea:focus {
+    outline: none;
+  }
+}
