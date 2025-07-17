@@ -1,0 +1,45 @@
+# .github/workflows/deploy.yml
+name: Synchronize to forked repo
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read   # 원격 푸시용 PAT를 사용하므로 기본 권한은 read 로 충분
+
+jobs:
+  sync:
+    name: Sync forked repo
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 소스 체크아웃
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # 히스토리 전체 보존
+
+      # 2) 현재 브랜치명 추출 → 환경 변수 TARGET_BRANCH 로 노출
+      - name: Determine target branch
+        id: vars
+        run: echo "TARGET_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      # 3) 포크 리모트 추가 (PAT 인증)
+      - name: Add fork remote
+        run: |
+          git remote add fork \
+            https://cubeAiFE:${{ secrets.FORK_REPO_PAT }}@github.com/cubeAiFE/4th-security-CubeAI-FE.git
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 4) 포크로 강제 푸시 (생성·덮어쓰기 모두 허용)
+      - name: Push branch to fork
+        run: |
+          git push --force fork "${{ env.TARGET_BRANCH }}":"${{ env.TARGET_BRANCH }}"
+
+      # 5) 리모트 정리 (보안·캐시 최소화)
+      - name: Clean up
+        run: git remote remove fork
