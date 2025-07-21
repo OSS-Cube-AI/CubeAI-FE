@@ -1,4 +1,4 @@
-import { AxiosInstance } from 'axios';
+// import { AxiosInstance } from 'axios';
 
 export class SignUpApi {
   // private readonly instance: AxiosInstance;
