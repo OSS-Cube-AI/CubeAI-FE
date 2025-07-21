@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0        # 히스토리 전체 보존
+          token: ${{ secrets.FORK_REPO_PAT }}
 
       # 2) 현재 브랜치명 추출 → 환경 변수 TARGET_BRANCH 로 노출
       - name: Determine target branch
