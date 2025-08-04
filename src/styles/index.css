@@ -1,9 +1,9 @@
+@import './fontStyle.css';
+@import './designSystem.css';
+@import './baseStyle.css';
+
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
 @plugin 'tailwind-scrollbar-hide';
 @plugin 'tailwind-scrollbar';
-
-@import './designSystem.css';
-@import './fontStyle.css';
-@import './baseStyle.css';

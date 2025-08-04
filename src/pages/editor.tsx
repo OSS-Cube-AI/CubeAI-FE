@@ -16,9 +16,9 @@ export default function EditorPage() {
   } = useTab<'코드' | '데이터' | '학습'>('코드');
 
   return (
-    <div className="flex gap-8">
+    <div className="flex justify-between h-screen">
       {/* 왼쪽 영역 */}
-      <div className="w-1/2 font-bold text-2xl text-center">
+      <div className="w-[376px] font-bold text-2xl text-center">
         <LeftTabList>
           <LeftTabTrigger value="데이터 전처리">데이터 전처리</LeftTabTrigger>
           <LeftTabTrigger value="모델 설계">모델 설계</LeftTabTrigger>
@@ -34,7 +34,7 @@ export default function EditorPage() {
       </div>
 
       {/* 오른쪽 영역 */}
-      <div className="w-1/2 font-bold text-2xl text-center">
+      <div className="w-[376px] font-bold text-2xl text-center">
         <RightTabList>
           <RightTabTrigger value="코드">코드</RightTabTrigger>
           <RightTabTrigger value="데이터">데이터</RightTabTrigger>
