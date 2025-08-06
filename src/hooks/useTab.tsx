@@ -1,14 +1,15 @@
 import { motion } from 'motion/react';
 import React, { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 
-export function useTab<T>(defaultTab: T) {
+export function useTab<T>(defaultTab: T, layoutId: string = "activeTab") {
   const [activeTab, setActiveTab] = useState<T>(defaultTab);
 
   function TabsList({ children }: { children: React.ReactNode }) {
     const childArray = React.Children.toArray(children);
 
     return (
-      <div className="flex border-b-[2px] border-gray-200">
+      <div className="flex">
         {childArray.map((child, index) => {
           if (React.isValidElement<{ isFirst?: boolean; isLast?: boolean }>(child)) {
             return React.cloneElement(child, {
@@ -35,28 +36,31 @@ export function useTab<T>(defaultTab: T) {
   }) {
     const isActive = activeTab === value;
 
-    const baseStyle = "inline-flex items-center justify-center w-full cursor-pointer relative transition-all duration-200 min-h-15";
+    const baseStyle = twMerge(
+      "inline-flex items-center justify-center w-full cursor-pointer relative", 
+      "transition-all duration-200 min-h-15 border-[2px] border-b-0 border-r-0 border-[#C3CCD9]"
+    );
     const radiusStyle = isFirst
       ? "rounded-tl-[30px]"
       : isLast
-      ? "rounded-tr-[30px]"
+      ? "rounded-tr-[30px] !border-r-[2px]"
       : "";
 
     const activeStyle = isActive
-      ? "bg-white text-[#0090FB] shadow-[0_2px_4px_rgba(0,0,0,0.05)] z-10 border-t border-l border-r border-gray-200"
-      : "bg-[#F5F7FA] text-[#89919D] border border-gray-200";
+      ? "bg-white text-[#0090FB] shadow-[0_2px_4px_rgba(0,0,0,0.05)] z-10"
+      : "bg-[#F5F7FA] text-[#89919D]";
 
     return (
       <div
         className={`${baseStyle} ${radiusStyle} ${activeStyle}`}
         onClick={() => setActiveTab(value)}
       >
-        <span className="inline-block px-4 py-2 text-[15px] font-medium">
+        <span className="inline-block px-4 py-2 text-[15px] font-medium whitespace-pre-line">
           {children}
         </span>
         {isActive && (
           <motion.div
-            layoutId="activeTab"
+            layoutId={layoutId}
             className="absolute bottom-[-2px] left-0 right-0 h-[3px] bg-[#0090FB] rounded-t"
           />
         )}
