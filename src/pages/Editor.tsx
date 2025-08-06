@@ -20,7 +20,7 @@ export default function EditorPage() {
       {/* 왼쪽 영역 */}
       <div className="w-[376px] font-bold text-2xl text-center">
         <LeftTabList>
-          <LeftTabTrigger value="데이터 전처리">데이터 전처리</LeftTabTrigger>
+          <LeftTabTrigger value="데이터 전처리">데이터\n전처리</LeftTabTrigger>
           <LeftTabTrigger value="모델 설계">모델 설계</LeftTabTrigger>
           <LeftTabTrigger value="학습하기">학습하기</LeftTabTrigger>
           <LeftTabTrigger value="평가하기">평가하기</LeftTabTrigger>

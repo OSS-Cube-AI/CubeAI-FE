@@ -8,7 +8,7 @@ export function useTab<T>(defaultTab: T) {
     const childArray = React.Children.toArray(children);
 
     return (
-      <div className="flex justify-between border-b border-gray-200">
+      <div className="flex border-b-[2px] border-gray-200">
         {childArray.map((child, index) => {
           if (React.isValidElement<{ isFirst?: boolean; isLast?: boolean }>(child)) {
             return React.cloneElement(child, {
@@ -35,34 +35,32 @@ export function useTab<T>(defaultTab: T) {
   }) {
     const isActive = activeTab === value;
 
-    const baseStyle = "cursor-pointer pb-2 -mb-[1.5px] relative";
+    const baseStyle = "inline-flex items-center justify-center w-full cursor-pointer relative transition-all duration-200 min-h-15";
     const radiusStyle = isFirst
-      ? "rounded-l-full"
+      ? "rounded-tl-[30px]"
       : isLast
-      ? "rounded-r-full"
+      ? "rounded-tr-[30px]"
       : "";
 
+    const activeStyle = isActive
+      ? "bg-white text-[#0090FB] shadow-[0_2px_4px_rgba(0,0,0,0.05)] z-10 border-t border-l border-r border-gray-200"
+      : "bg-[#F5F7FA] text-[#89919D] border border-gray-200";
+
     return (
-      <motion.div
-        className={`${baseStyle} ${radiusStyle}`}
+      <div
+        className={`${baseStyle} ${radiusStyle} ${activeStyle}`}
         onClick={() => setActiveTab(value)}
       >
-        <span
-          className={`px-4 py-1 inline-block text-[15px] ${
-            isActive
-              ? "text-[#0090FB] bg-white"
-              : "text-[#89919D] bg-[#EEF6FF]"
-          } ${radiusStyle}`}
-        >
+        <span className="inline-block px-4 py-2 text-[15px] font-medium">
           {children}
         </span>
         {isActive && (
           <motion.div
-            className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0090FB]"
             layoutId="activeTab"
+            className="absolute bottom-[-2px] left-0 right-0 h-[3px] bg-[#0090FB] rounded-t"
           />
         )}
-      </motion.div>
+      </div>
     );
   }
 
