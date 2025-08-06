@@ -4,7 +4,6 @@ import {
   RouterProvider,
   createBrowserRouter,
 } from 'react-router-dom';
-import RootPage from '@/pages/RootPage';
 import SomethingWentWrongPage from '@/components/status/error/SomethingWentWrongPage';
 import { UnknownErrorBoundary } from '@/components/status/error/UnknownErrorBoundary';
 import { APIErrorBoundary } from '@/components/status/error/APIErrorBoundary';
@@ -13,6 +12,9 @@ import Loader from '@/components/status/loading/Loader';
 import { ROUTE_TYPE } from '@/constants/path';
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
+
+import RootPage from '@/pages/RootPage';
+import EditorPage from '@/pages/editor';
 
 const createAuthRouter = (routeType: ROUTE_TYPE, children: RouteObject[]) => {
   const authRouter = children.map((child: RouteObject) => ({
@@ -40,7 +42,12 @@ const router = createBrowserRouter([
         element: <RootPage />,
       },
       ...createAuthRouter('PRIVATE', [{}]),
-      ...createAuthRouter('PUBLIC', [{}]),
+      ...createAuthRouter('PUBLIC', [
+        {
+          path: '/editor',
+          element: <EditorPage />,
+        }
+      ]),
       {
         path: '*',
         element: <SomethingWentWrongPage />,
