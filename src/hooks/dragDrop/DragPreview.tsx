@@ -17,9 +17,10 @@ export default function DragPreview() {
         transform: 'translate(-50%, -50%)',
       }}
     >
-      {dragging.type === 'csv' && 'CSV 불러오기'}
-      {dragging.type === 'normalize' && '정규화'}
-      {dragging.type === 'dense' && 'Dense Layer'}
+      {dragging.type === 'choice' && '데이터 선택하기'}
+      {dragging.type === 'delete' && '빈 데이터 삭제하기'}
+      {dragging.type === 'loss function' && '손실함수 선택하기'}
+      {dragging.type === 'performance' && '성능 평가하기'}
     </div>
   );
 } 
