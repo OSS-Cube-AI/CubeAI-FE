@@ -14,7 +14,7 @@ import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
 
 import RootPage from '@/pages/RootPage';
-import EditorPage from '@/pages/editor';
+import EditorPage from '@/pages/Editor';
 
 const createAuthRouter = (routeType: ROUTE_TYPE, children: RouteObject[]) => {
   const authRouter = children.map((child: RouteObject) => ({

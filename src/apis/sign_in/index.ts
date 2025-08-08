@@ -1,4 +1,4 @@
-import { instance } from '@/apis/instance';
-import { SignUpApi } from './sign_up.api';
+// import { instance } from '@/apis/instance';
+// import { SignUpApi } from './sign_up.api';
 
-export const signUpApi = new SignUpApi(instance);
+// export const signUpApi = new SignUpApi(instance);
