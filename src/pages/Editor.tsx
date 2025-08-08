@@ -49,10 +49,10 @@ export default function EditorPage() {
           </LeftTabsContainer>
         </div>
         {/* 여기에 DND 요소 ㄱㄱ */}
-        {/* <section className="w-full">
+        <section className="">
 
-        </section> */}
-        <div className="w-[376px] font-bold text-2xl text-center">
+        </section>
+        <div className="w-[376px] font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
           <RightTabsContainer>
             <RightTabContent value="코드">설정 내용 A</RightTabContent>
             <RightTabContent value="데이터">설정 내용 B</RightTabContent>
