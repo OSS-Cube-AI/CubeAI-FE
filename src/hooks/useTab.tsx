@@ -9,7 +9,7 @@ export function useTab<T>(defaultTab: T, layoutId: string = "activeTab") {
     const childArray = React.Children.toArray(children);
 
     return (
-      <div className="flex">
+      <div className="flex h-full">
         {childArray.map((child, index) => {
           if (React.isValidElement<{ isFirst?: boolean; isLast?: boolean }>(child)) {
             return React.cloneElement(child, {
@@ -69,8 +69,9 @@ export function useTab<T>(defaultTab: T, layoutId: string = "activeTab") {
   }
 
   function TabsContainer({ children }: { children: React.ReactNode }) {
+    // h-[85vh]를 flex-1로 변경하여 남은 공간을 모두 차지하도록 함
     return (
-      <div className="flex flex-col flex-1 w-full h-[80vh] px-6 py-3 overflow-y-scroll scrollbar-hide">
+      <div className="flex flex-col flex-1 w-full overflow-y-scroll scrollbar-hide">
         {children}
       </div>
     );
@@ -84,7 +85,8 @@ export function useTab<T>(defaultTab: T, layoutId: string = "activeTab") {
     value: T;
   }) {
     if (activeTab !== value) return null;
-    return <div>{children}</div>;
+    // h-[56vh]를 flex-1로 변경하여 TabsContainer 내부의 남은 공간을 채우도록 함
+    return <div className='w-full flex-1'>{children}</div>;
   }
 
   return {

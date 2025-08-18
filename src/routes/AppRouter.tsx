@@ -28,6 +28,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
+      // <Outlet />
       <UnknownErrorBoundary>
         <APIErrorBoundary>
           <Suspense fallback={<Loader />}>
