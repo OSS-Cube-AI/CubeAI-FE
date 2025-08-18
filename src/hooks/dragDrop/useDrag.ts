@@ -43,23 +43,23 @@ export function useDrag(options: UseDragOptions = {}) {
   const startTimeRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
 
+  const cleanupListeners = useCallback((handlePointerUp: any, handlePointerCancel: any, handlePointerMove: any) => {
+    window.removeEventListener("pointerup", handlePointerUp);
+    window.removeEventListener("pointercancel", handlePointerCancel);
+    window.removeEventListener("pointermove", handlePointerMove);
+  }, []);
+
   const handlePointerMove = useCallback((e: PointerEvent) => {
     if (!draggingRef.current) return;
-    
-    console.log('handlePointerMove called, draggingRef.current:', draggingRef.current);
-    
-    // 드래그 중인 요소의 위치를 업데이트
+
     const position = { x: e.clientX, y: e.clientY };
-    console.log('About to call setDragPosition with:', position);
     setDragPosition(position);
-    console.log('setDragPosition called successfully');
   }, [setDragPosition]);
 
   const handlePointerUp = useCallback(
     (e: PointerEvent) => {
       if (!draggingRef.current || !startRef.current) return;
 
-      console.log('Drag ended');
       draggingRef.current = false;
       setIsDragging(false);
 
@@ -80,20 +80,25 @@ export function useDrag(options: UseDragOptions = {}) {
         durationMs,
       });
 
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-      window.removeEventListener("pointermove", handlePointerMove);
+      cleanupListeners(handlePointerUp as any, handlePointerCancel as any, handlePointerMove as any);
     },
-    [onEnd, handlePointerMove, setDragPosition]
+    [onEnd, handlePointerMove, setDragPosition, cleanupListeners]
   );
+
+  const handlePointerCancel = useCallback(() => {
+    if (!draggingRef.current) return;
+    // 스크롤/제스처 등으로 취소된 경우: 종료 콜백 없이 상태만 정리
+    draggingRef.current = false;
+    setIsDragging(false);
+    setDragPosition(null);
+    cleanupListeners(handlePointerUp as any, handlePointerCancel as any, handlePointerMove as any);
+  }, [cleanupListeners, handlePointerMove, handlePointerUp, setDragPosition]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      console.log('Drag started');
-      console.log('Pointer event:', e.clientX, e.clientY);
-      
-      // 텍스트 선택 방지 & 포인터 캡처
-      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+      // 제스처 충돌 방지
+      (e.currentTarget as HTMLElement).style.touchAction = "none";
+      // 텍스트 선택 방지
       e.preventDefault();
 
       draggingRef.current = true;
@@ -102,22 +107,18 @@ export function useDrag(options: UseDragOptions = {}) {
       startRef.current = { x: e.clientX, y: e.clientY };
       startTimeRef.current = performance.now();
 
-      console.log('Adding event listeners for pointerup, pointercancel, pointermove');
       onStart?.(e, { start: startRef.current });
 
       window.addEventListener("pointerup", handlePointerUp);
-      window.addEventListener("pointercancel", handlePointerUp);
+      window.addEventListener("pointercancel", handlePointerCancel);
       window.addEventListener("pointermove", handlePointerMove);
-      
-      console.log('Event listeners added, draggingRef.current:', draggingRef.current);
     },
-    [onStart, handlePointerUp, handlePointerMove]
+    [onStart, handlePointerUp, handlePointerMove, handlePointerCancel]
   );
 
   // 드래그 가능한 요소에 바인딩할 핸들러
   const bind = {
     onPointerDown: handlePointerDown,
-    // 접근성 옵션(선택)
     role: "button" as const,
     tabIndex: 0 as const,
   };

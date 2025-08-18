@@ -3,6 +3,7 @@ import Workspace from "@/components/layout/dragDrop/workspace";
 import NodePalette from "@/hooks/dragDrop/NodePalette";
 import { DragProvider } from "@/hooks/dragDrop/DragContext";
 import DragPreview from "@/hooks/dragDrop/DragPreview";
+import Header from "@/components/layout/Header";
 
 import Chat from "@/components/editor/Chat";
 
@@ -24,13 +25,7 @@ export default function EditorPage() {
   return (
     <DragProvider>
       <div className="flex flex-col h-screen">
-
-        {/* ───── 헤더 ───── */}
-        <section className="h-[70px] bg-[#0090FB] flex items-center px-[11px]">
-          <h2 className="text-white text-[25px] font-bold w-[130px] text-center">
-            타이틀
-          </h2>
-        </section>
+        <Header />
 
         {/* ───── 상단 탭 바 ───── */}
         <section className="flex justify-between items-end h-[105px] bg-[#EEF6FF] border-b-[2px] border-[#C3CCD9]">
