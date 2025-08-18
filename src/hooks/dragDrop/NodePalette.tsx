@@ -15,13 +15,13 @@ export default function NodePalette() {
     return (
       <>
       {NODE_DEFS.map((n) => (
-        <div className="relative grid w-[336px] h-28 place-items-center px-4 py-2">
+        <div key={n.type} className="relative grid w-[336px] h-28 place-items-center px-4 py-2">
           <img
           src={n.color}
           alt={n.label}
           className="absolute inset-0 w-full h-full object-contain -z-10 pointer-events-none"
           />
-          <PaletteItem key={n.type} {...n} />
+          <PaletteItem {...n} />
           </div>
       ))}
       </>
