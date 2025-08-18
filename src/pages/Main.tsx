@@ -2,22 +2,8 @@ import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Cube from '@/assets/Cube.png';
-
-function PrimaryButton({ children }: { children: React.ReactNode }) {
-  return (
-    <button className="h-11 w-64 rounded-md bg-sky-500 text-white text-lg font-bold shadow-sm hover:bg-sky-600 transition">
-      {children}
-    </button>
-  );
-}
-
-function OutlineButton({ children }: { children: React.ReactNode }) {
-  return (
-    <button className="h-11 w-64 rounded-md border border-sky-500 text-sky-700 text-lg font-bold hover:bg-sky-50 transition">
-      {children}
-    </button>
-  );
-}
+import Finished from '@/assets/icons/finish.png';
+import NotFinished from '@/assets/icons/not_finish.png';
 
 function ProgressBar({ value, width }: { value: number; width?: string }) {
   const pct = Math.max(0, Math.min(100, value));
@@ -37,18 +23,19 @@ function ProgressBar({ value, width }: { value: number; width?: string }) {
   );
 }
 
-function UnitCard({ title, subtitle, bullets, disabled }: { title: string; subtitle?: string; bullets?: string[]; disabled?: boolean; }) {
+function UnitCard({ title, subtitle, bullets, completed }: { title: string; subtitle?: string; bullets?: string[]; completed?: boolean; }) {
   return (
     <article className="w-64 flex flex-col gap-2">
       <div className="h-36 bg-blue-50 rounded-md p-4 relative">
         <h4 className="text-sky-500 text-xl font-bold leading-6">{title}</h4>
-        <button
-          className={["absolute bottom-3 right-3 size-9 rounded-3xl shadow-[0_0_3px_1px_rgba(0,144,251,0.70)] grid place-items-center", disabled ? "bg-zinc-200" : "bg-white"].join(" ")}
-          disabled={disabled}
-          aria-label="프로젝트 시작"
-        >
-          <div className={["size-5 rounded", disabled ? "bg-zinc-400" : "bg-sky-500"].join(" ")} />
-        </button>
+        <div className="absolute bottom-3 right-3 size-9 grid place-items-center select-none">
+          <img 
+            src={completed ? Finished : NotFinished} 
+            alt={completed ? "완료" : "미완료"} 
+            className="w-[100%] h-[100%] object-cover select-none"
+            draggable="false"
+          />
+        </div>
       </div>
       {subtitle && <div className="h-11 flex items-center"><p className="text-base font-bold truncate" title={subtitle}>{subtitle}</p></div>}
       {bullets && bullets.length > 0 && (
@@ -98,7 +85,7 @@ export default function MainPage() {
                   AI Basics
               </div>
             </div>
-            <div className="h-36 w-full rounded-xl grid place-items-center relative -ml-[320px] -mt-[-120px] z-20">
+            <div className="h-36 w-full rounded-xl grid place-items-center relative -ml-[220px] -mt-[-120px] z-20">
               <img src={Cube} alt="Model Build" className="w-full h-[152px] object-contain" />
               <div className="absolute inset-0 flex items-center justify-center text-white text-3xl font-bold select-none">
                   Model Build
@@ -144,10 +131,10 @@ export default function MainPage() {
 
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <UnitCard title="AI란 무엇인가" subtitle="AI란 무엇인가?" bullets={["인공지능 vs 머신러닝 vs 딥러닝", "AI가 하는 일은 무엇인가?"]} />
-          <UnitCard title="2. AI 테스크 종류" subtitle="AI 테스크 종류" bullets={["이미지 분류, 감정 분석, 추천 시스템", "생성 AI(텍스트/이미지 등), 숫자 예측(회귀 등)"]} />
+          <UnitCard title="AI란 무엇인가" subtitle="AI란 무엇인가?" bullets={["인공지능 vs 머신러닝 vs 딥러닝", "AI가 하는 일은 무엇인가?"]} completed />
+          <UnitCard title="2. AI 테스크 종류" subtitle="AI 테스크 종류" bullets={["이미지 분류, 감정 분석, 추천 시스템", "생성 AI(텍스트/이미지 등), 숫자 예측(회귀 등)"]} completed />
           <UnitCard title="3. AI 학습 흐름" subtitle="AI 학습 흐름" bullets={["데이터 수집 → 전처리 → 학습 → 예측 → 평가", "지도학습 vs 비지도학습", "모델 성능 평가 기준(정확도 등)"]} />
-          <UnitCard title="4. AI 모델 설명" subtitle="AI 학습 흐름" bullets={["데이터 수집 → 전처리 → 학습 → 예측 → 평가", "지도학습 vs 비지도학습", "모델 성능 평가 기준(정확도 등)"]} disabled />
+          <UnitCard title="4. AI 모델 설명" subtitle="AI 학습 흐름" bullets={["데이터 수집 → 전처리 → 학습 → 예측 → 평가", "지도학습 vs 비지도학습", "모델 성능 평가 기준(정확도 등)"]} />
         </div>
       </section>
 
