@@ -13,7 +13,7 @@ interface PaletteItemProps {
   parameters: number[];
 }
 
-export default function PaletteItem({ label, type, isToggle, parameters }: PaletteItemProps) {
+export default function PaletteItem({ label, type, isToggle, parameters, color }: PaletteItemProps) {
   const { setDragging } = useDragCtx();
   const [isOn, setIsOn] = useState(false);
   const [paramValues, setParamValues] = useState<string[]>(parameters.map((p) => p.toString()));
@@ -24,14 +24,12 @@ export default function PaletteItem({ label, type, isToggle, parameters }: Palet
 
   const { bind, isDragging } = useDrag({
     onStart: () => {
-      console.log('PaletteItem onStart called with type:', type);
-      setDragging({ type } satisfies DragData);
-      console.log('setDragging called with:', { type });
-    },
-    onEnd: () => {
-      console.log('PaletteItem onEnd called');
-      setDragging(null);
-      console.log('setDragging called with null');
+      // 현재 UI 상태(토글, 입력값)를 meta에 반영
+      const parsedParams = paramValues.map((v, i) => {
+        const n = Number(v);
+        return Number.isNaN(n) ? parameters[i] : n;
+      });
+      setDragging({ type, meta: { label, color, isToggle, toggleOn: isOn, parameters: parsedParams } } satisfies DragData);
     },
   });
 
@@ -55,7 +53,7 @@ export default function PaletteItem({ label, type, isToggle, parameters }: Palet
           {label}
         </div>
 
-        {/* 파라미터 값 입력 버튼*/}
+        {/* 파라미터 값 입력 */}
         {paramValues.map((value, index) => (
           <div key={index} className="w-14 h-7 bg-white rounded-full mt-[5px] ml-[10px] flex items-center justify-center">
             <input
@@ -67,7 +65,7 @@ export default function PaletteItem({ label, type, isToggle, parameters }: Palet
               }}
               onBlur={() => {
                 const next = [...paramValues];
-                // 비워두면 초기 parameters 값으로 복원 (5자리 포맷)
+                // 비워두면 초기 parameters 값으로 다시 돌아와~ 돌아와 (5자리 포맷)
                 if (next[index] === "") {
                   next[index] = formatToFive(String(parameters[index]));
                 } else {
@@ -84,7 +82,7 @@ export default function PaletteItem({ label, type, isToggle, parameters }: Palet
           </div>
         ))}
 
-        {/* 토글 버튼 유무 */}
+        {/* 토글 버튼 유/무 */}
         {isToggle && (
           <div
             className="ml-[80px] mt-[5px]"
