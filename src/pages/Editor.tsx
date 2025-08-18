@@ -75,7 +75,7 @@ export default function EditorPage() {
 
           
           {/* 오른쪽 사이드바 */}
-          <aside className="flex w-100 font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
+          <aside className="flex w-100 h-full font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
             <RightTabsContainer>
               <RightTabContent value="코드"> <Chat/></RightTabContent>
               <RightTabContent value="데이터">설정 내용 B</RightTabContent>
