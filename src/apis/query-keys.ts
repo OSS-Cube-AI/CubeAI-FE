@@ -1,3 +1,3 @@
 export const queryKeys = {
-  conversation: (id: string) => ['chat', 'conversation', id],
+  conversation: (id: string | null) => ['chat', 'conversation', id],
 };
