@@ -13,7 +13,7 @@ import { ROUTE_TYPE } from '@/constants/path';
 import PrivateRoute from './PrivateRoute';
 import PublicRoute from './PublicRoute';
 
-import RootPage from '@/pages/RootPage';
+import MainPage from '@/pages/Main';
 import EditorPage from '@/pages/Editor';
 
 const createAuthRouter = (routeType: ROUTE_TYPE, children: RouteObject[]) => {
@@ -39,7 +39,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <RootPage />,
+        element: <MainPage />,
       },
       ...createAuthRouter('PRIVATE', [{}]),
       ...createAuthRouter('PUBLIC', [
