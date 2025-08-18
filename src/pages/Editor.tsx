@@ -4,6 +4,8 @@ import NodePalette from "@/hooks/dragDrop/NodePalette";
 import { DragProvider } from "@/hooks/dragDrop/DragContext";
 import DragPreview from "@/hooks/dragDrop/DragPreview";
 
+import Chat from "@/components/editor/Chat";
+
 export default function EditorPage() {
   const {
     TabsList: LeftTabList,
@@ -32,7 +34,7 @@ export default function EditorPage() {
 
         {/* ───── 상단 탭 바 ───── */}
         <section className="flex justify-between items-end h-[105px] bg-[#EEF6FF] border-b-[2px] border-[#C3CCD9]">
-          <div className="w-[376px] font-bold text-2xl text-center">
+          <div className="w-100 font-bold text-2xl text-center">
             <LeftTabList>
               <LeftTabTrigger value="데이터 전처리">{"데이터\n전처리"}</LeftTabTrigger>
               <LeftTabTrigger value="모델 설계">모델 설계</LeftTabTrigger>
@@ -42,7 +44,7 @@ export default function EditorPage() {
           </div>
 
           {/* 오른쪽 탭 */}
-          <div className="w-[376px] font-bold text-2xl text-center">
+          <div className="w-100 font-bold text-2xl text-center">
             <RightTabList>
               <RightTabTrigger value="코드">코드</RightTabTrigger>
               <RightTabTrigger value="데이터">데이터</RightTabTrigger>
@@ -53,7 +55,7 @@ export default function EditorPage() {
         
         <section className="flex justify-between flex-1">
             {/* 왼쪽 사이드바 */}
-            <aside className="w-[376px] border-r-[2px] border-[#C3CCD9] font-bold text-2xl text-center">
+            <aside className="flex w-100 border-r-[2px] border-[#C3CCD9] font-bold text-2xl text-center">
               <LeftTabsContainer>
                 <LeftTabContent value="데이터 전처리">
                   {/* 드래그 가능한 노드 팔레트 */}
@@ -66,20 +68,20 @@ export default function EditorPage() {
             </aside>
 
           {/* 여기에 DND 요소 ㄱㄱ */}
-          <section className="w-full">
+          <section className="flex-1 w-full">
             {/* 중앙 캔버스 영역 (드롭 지점) */}
             <Workspace />
           </section>
 
           
           {/* 오른쪽 사이드바 */}
-          <div className="w-[376px] font-bold text-2xl text-center">
+          <aside className="flex w-100 font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
             <RightTabsContainer>
-              <RightTabContent value="코드">설정 내용 A</RightTabContent>
+              <RightTabContent value="코드"> <Chat/></RightTabContent>
               <RightTabContent value="데이터">설정 내용 B</RightTabContent>
               <RightTabContent value="학습">설정 내용 C</RightTabContent>
             </RightTabsContainer>
-          </div>
+          </aside>
         </section>
 
         {/* 드래그 중인 요소 미리보기 */}
