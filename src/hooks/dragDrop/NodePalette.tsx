@@ -281,7 +281,7 @@ export default function NodePalette({ selectedTab }: NodePaletteProps) {
     <div className="flex flex-col gap-4 p-4 items-center">
       <div className="space-y-2 w-[336px] flex flex-col items-center">
         <h3 className="text-lg font-semibold text-gray-700">블록 선택하기</h3>
-        <div className="grid grid-cols-1 gap-2 w-full flex flex-col items-center h-[600px] overflow-y-auto pr-1 pb-28 relative z-0 isolate">
+        <div className="grid grid-cols-1 gap-2 w-full items-center h-[600px] overflow-y-auto pr-1 pb-28 relative z-0 isolate">
           {currentNodes.map(n => (
             <div key={n.type} className="relative grid w-[336px] h-28 place-items-center px-4 py-2">
               <img

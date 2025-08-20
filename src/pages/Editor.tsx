@@ -37,7 +37,7 @@ export default function EditorPage() {
           <Header />
 
           {/* ───── 상단 탭 바 ───── */}
-          <section className="flex justify-between items-end h-[105px] bg-[#EEF6FF] border-b-[2px] border-[#C3CCD9]">
+          <section className="flex justify-between items-end min-h-[105px] bg-[#EEF6FF] border-b-[2px] border-[#C3CCD9]">
             <div className="w-100 font-bold text-2xl text-center">
               <LeftTabList>
                 <LeftTabTrigger value="데이터 전처리">{'데이터\n전처리'}</LeftTabTrigger>
