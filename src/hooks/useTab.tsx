@@ -28,16 +28,18 @@ export function useTab<T>(defaultTab: T, layoutId: string = 'activeTab') {
     value,
     isFirst,
     isLast,
+    disabled = false,
   }: {
     children: React.ReactNode;
     value: T;
     isFirst?: boolean;
     isLast?: boolean;
+    disabled?: boolean;
   }) {
     const isActive = activeTab === value;
 
     const baseStyle = twMerge(
-      'inline-flex items-center justify-center w-full cursor-pointer relative',
+      'inline-flex items-center justify-center w-full relative',
       'transition-all duration-200 min-h-15 border-[2px] border-b-0 border-r-0 border-[#C3CCD9]',
     );
     const radiusStyle = isFirst
@@ -46,14 +48,17 @@ export function useTab<T>(defaultTab: T, layoutId: string = 'activeTab') {
         ? 'rounded-tr-[30px] !border-r-[2px]'
         : '';
 
-    const activeStyle = isActive
-      ? 'bg-white text-[#0090FB] shadow-[0_2px_4px_rgba(0,0,0,0.05)] z-10'
-      : 'bg-[#F5F7FA] text-[#89919D]';
+    const activeStyle =
+      'bg-white text-[#0090FB] shadow-[0_2px_4px_rgba(0,0,0,0.05)] z-10 cursor-pointer';
+    const inactiveStyle = 'bg-[#F5F7FA] text-[#89919D] cursor-pointer';
+    const disabledStyle = 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'; // 비활성화 스타일
+
+    const combinedStyle = disabled ? disabledStyle : isActive ? activeStyle : inactiveStyle;
 
     return (
       <div
-        className={`${baseStyle} ${radiusStyle} ${activeStyle}`}
-        onClick={() => setActiveTab(value)}
+        className={twMerge(baseStyle, radiusStyle, combinedStyle)}
+        onClick={() => !disabled && setActiveTab(value)}
       >
         <span className="inline-block px-4 py-2 text-[15px] font-medium whitespace-pre-line">
           {children}
