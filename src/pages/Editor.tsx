@@ -14,7 +14,7 @@ import Code from '@/components/editor/rightTab/Code';
 import Data from '@/components/editor/rightTab/Data';
 import Training from '@/components/editor/rightTab/Training';
 
-import FinalResultDialog from '@/components/editor/FinalResultDialog';
+import CurrentStepInfo from '@/components/editor/CurrentStepInfo';
 
 import type { editorStep } from '@/types/editor';
 
@@ -105,27 +105,13 @@ export default function EditorPage() {
               </LeftTabList>
             </div>
 
-            <div className="flex flex-col flex-1 items-center justify-center">
-              <p className="text-center mb-2">
-                현재 단계: <strong>{editorStep}</strong>
-              </p>
-              <div className="flex gap-10">
-                <button
-                  onClick={handleBackStep}
-                  disabled={currentStepIndex === 0}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-                >
-                  이전 단계로
-                </button>
-                <button
-                  onClick={handleCompleteAndNextStep}
-                  disabled={currentStepIndex === stepOrder.length - 1}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-                >
-                  다음 단계로
-                </button>
-              </div>
-            </div>
+            <CurrentStepInfo
+              editorStep={editorStep}
+              currentStepIndex={currentStepIndex}
+              stepOrder={stepOrder}
+              handleBackStep={handleBackStep}
+              handleCompleteAndNextStep={handleCompleteAndNextStep}
+            />
 
             {/* 오른쪽 탭 */}
             <div className="w-100 font-bold text-2xl text-center">
