@@ -6,6 +6,7 @@ import { DragProvider } from '@/hooks/dragDrop/DragContext';
 import DragPreview from '@/hooks/dragDrop/DragPreview';
 import Header from '@/components/layout/Header';
 
+import { useLogStore } from '@/stores/useLogStore';
 import SSEComponent from '@/components/common/SSEComponent';
 
 import AiChatButton from '@/components/editor/AiChatButton';
@@ -13,7 +14,6 @@ import Code from '@/components/editor/rightTab/Code';
 import Data from '@/components/editor/rightTab/Data';
 import Training from '@/components/editor/rightTab/Training';
 
-import { SampleDto } from '@/apis/sidebar/dto/dataInfo';
 import type { editorStep } from '@/types/editor';
 
 const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL;
@@ -34,7 +34,7 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
-  const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
+  const { addLog, clearLogs } = useLogStore();
 
   const {
     TabsList: LeftTabList,
@@ -54,7 +54,7 @@ export default function EditorPage() {
   } = useTab<'코드' | '데이터' | '학습'>('코드', 'activeTab-right');
 
   const handleNewLog = (newLog: string) => {
-    setTrainingLogs(prevLogs => [...prevLogs, newLog]);
+    addLog(editorStep, newLog);
   };
 
   const currentStepIndex = stepOrder.indexOf(editorStep);
@@ -62,13 +62,16 @@ export default function EditorPage() {
   // 다음 단계로 진행하는 함수 (테스트용)
   const handleCompleteAndNextStep = () => {
     if (currentStepIndex < stepOrder.length - 1) {
-      setEditorStep(stepOrder[currentStepIndex + 1]);
+      const nextStep = stepOrder[currentStepIndex + 1];
+      clearLogs(nextStep);
+      setEditorStep(nextStep);
     }
   };
 
   const handleBackStep = () => {
     if (currentStepIndex > 0) {
-      setEditorStep(stepOrder[currentStepIndex - 1]);
+      const prevStep = stepOrder[currentStepIndex - 1];
+      setEditorStep(prevStep);
     }
   };
 
@@ -164,10 +167,10 @@ export default function EditorPage() {
                   <Code codeString={"import python\n\nprint('Hello, World!')"} />
                 </RightTabContent>
                 <RightTabContent value="데이터">
-                  <Data data={mockApiResponse} type="sample" />
+                  <Data />
                 </RightTabContent>
                 <RightTabContent value="학습">
-                  <Training logs={trainingLogs} />
+                  <Training currentStage={editorStep} />
                 </RightTabContent>
               </RightTabsContainer>
             </aside>
@@ -179,15 +182,10 @@ export default function EditorPage() {
       </DragProvider>
       <AiChatButton />
       {/* SSEComponent를 렌더링하여 로그 스트리밍을 시작합니다. */}
-      <SSEComponent url={`${AI_BACKEND_URL}/logs/stream?stage=train`} onMessage={handleNewLog} />
+      <SSEComponent
+        url={`${AI_BACKEND_URL}/logs/stream?stage=${editorStep}`}
+        onMessage={handleNewLog}
+      />
     </>
   );
 }
-
-const mockApiResponse: SampleDto = {
-  columns: ['label', 'pixel0', 'pixel1'],
-  sample: [
-    [5, 0, 0],
-    [0, 0, 0],
-  ],
-};

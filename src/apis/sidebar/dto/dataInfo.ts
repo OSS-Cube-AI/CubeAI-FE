@@ -1,7 +1,9 @@
+export type dataType = 'shape' | 'structure' | 'sample' | 'images';
+
 // 1. 요청 쿼리 파라미터 인터페이스
 export interface DataInfoQueryParams {
   file: string;
-  type: 'shape' | 'structure' | 'sample' | 'images';
+  type: dataType;
   n?: number;
 }
 
