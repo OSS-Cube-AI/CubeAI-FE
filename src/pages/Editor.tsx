@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTab } from '@/hooks/useTab';
 import Workspace from '@/components/layout/dragDrop/workspace';
 import NodePalette from '@/hooks/dragDrop/NodePalette';
@@ -15,6 +15,8 @@ import Data from '@/components/editor/rightTab/Data';
 import Training from '@/components/editor/rightTab/Training';
 
 import CurrentStepInfo from '@/components/editor/CurrentStepInfo';
+import { useUserStore } from '@/stores/useUserStore';
+import WelcomeDialog from '@/components/editor/dialog/WelcomeDialog';
 
 import type { editorStep } from '@/types/editor';
 
@@ -36,8 +38,23 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
+  const [isIdInitialized, setIsIdInitialized] = useState(false);
   const addLog = useLogStore(state => state.addLog);
   const clearLogs = useLogStore(state => state.clearLogs);
+  const userId = useUserStore(state => state.userId);
+  const setUserId = useUserStore(state => state.setUserId);
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('demo-user-id');
+    if (storedUserId) {
+      setUserId(storedUserId);
+      setIsIdInitialized(true);
+    } else {
+      if (userId) {
+        setIsIdInitialized(true);
+      }
+    }
+  }, [userId]);
 
   const {
     TabsList: LeftTabList,
@@ -80,6 +97,7 @@ export default function EditorPage() {
 
   return (
     <>
+      {!isIdInitialized && <WelcomeDialog onIdSet={() => setIsIdInitialized(true)} />}
       <DragProvider>
         <div className="flex flex-col h-screen">
           <Header />

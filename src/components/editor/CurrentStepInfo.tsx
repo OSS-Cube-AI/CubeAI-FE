@@ -1,4 +1,4 @@
-import FinalResultDialog from './FinalResultDialog';
+import FinalResultDialog from './dialog/FinalResultDialog';
 
 import { editorStep, editorStepKor } from '@/types/editor';
 
@@ -32,7 +32,7 @@ export default function CurrentStepInfo({
         </button>
         {currentStepIndex === stepOrder.length - 1 ? (
           // 마지막 단계일 경우 '최종 결과 보기' 버튼 표시
-          <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 font-bold transition-colors duration-200">
+          <button className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 font-semibold transition-colors duration-200">
             <FinalResultDialog />
           </button>
         ) : (
