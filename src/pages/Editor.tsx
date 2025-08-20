@@ -39,6 +39,7 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
   const [isIdInitialized, setIsIdInitialized] = useState(false);
+  const [isIdModalOpen, setIsIdModalOpen] = useState(false);
   const addLog = useLogStore(state => state.addLog);
   const clearLogs = useLogStore(state => state.clearLogs);
   const userId = useUserStore(state => state.userId);
@@ -48,13 +49,11 @@ export default function EditorPage() {
     const storedUserId = localStorage.getItem('demo-user-id');
     if (storedUserId) {
       setUserId(storedUserId);
-      setIsIdInitialized(true);
+      setIsIdModalOpen(false);
     } else {
-      if (userId) {
-        setIsIdInitialized(true);
-      }
+      setIsIdModalOpen(true);
     }
-  }, [userId]);
+  }, [userId, setUserId]);
 
   const {
     TabsList: LeftTabList,
@@ -95,12 +94,20 @@ export default function EditorPage() {
     }
   };
 
+  const handleOpenIdModal = () => {
+    setIsIdModalOpen(true);
+  };
+
+  const handleCloseIdModal = () => {
+    setIsIdModalOpen(false);
+  };
+
   return (
     <>
-      {!isIdInitialized && <WelcomeDialog onIdSet={() => setIsIdInitialized(true)} />}
+      {isIdModalOpen && <WelcomeDialog isOpen={isIdModalOpen} onClose={handleCloseIdModal} />}
       <DragProvider>
         <div className="flex flex-col h-screen">
-          <Header />
+          <Header onOpenIdModal={handleOpenIdModal} />
 
           {/* ───── 상단 탭 바 ───── */}
           <section className="flex justify-between items-end min-h-[105px] bg-[#EEF6FF] border-b-[2px] border-[#C3CCD9]">

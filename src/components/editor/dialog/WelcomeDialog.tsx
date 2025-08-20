@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useUserStore } from '@/stores/useUserStore';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
@@ -13,17 +13,24 @@ import {
 } from '@/components/ui/dialog';
 
 interface WelcomeDialogProps {
-  onIdSet: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const NICKNAME_REGEX = /^[a-zA-Z0-9_-]{1,50}$/;
 const FORBIDDEN_NAMES = ['admin', 'root', 'system', 'user', 'guest'];
 
-export default function WelcomeDialog({ onIdSet }: WelcomeDialogProps) {
-  const [nickname, setNickname] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+export default function WelcomeDialog({ isOpen, onClose }: WelcomeDialogProps) {
   const setUserId = useUserStore(state => state.setUserId);
-
+  const currentUserId = useUserStore(state => state.userId);
+  const [nickname, setNickname] = useState(currentUserId || '');
+  const [errorMessage, setErrorMessage] = useState('');
+  useEffect(() => {
+    if (isOpen) {
+      setNickname(currentUserId || '');
+      setErrorMessage('');
+    }
+  }, [isOpen, currentUserId]);
   const isNicknameValid = useMemo(() => {
     if (!nickname) return true;
 
@@ -45,7 +52,7 @@ export default function WelcomeDialog({ onIdSet }: WelcomeDialogProps) {
     const finalUserId = nickname.trim() || `demo_user_${uuidv4().substring(0, 8)}`;
     setUserId(finalUserId);
     localStorage.setItem('demo-user-id', finalUserId);
-    onIdSet();
+    onClose();
   };
 
   return (
@@ -67,9 +74,16 @@ export default function WelcomeDialog({ onIdSet }: WelcomeDialogProps) {
           />
           {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
+          {/* '취소' 버튼을 추가하여 모달을 닫을 수 있게 합니다. */}
+          {currentUserId && (
+            <Button onClick={onClose} variant="ghost">
+              취소
+            </Button>
+          )}
           <Button onClick={handleStart} disabled={!isNicknameValid}>
-            시작하기
+            {/* 현재 ID가 있으면 '수정하기'로, 없으면 '시작하기'로 버튼 텍스트를 변경합니다. */}
+            {currentUserId ? '수정하기' : '시작하기'}
           </Button>
         </DialogFooter>
       </DialogContent>

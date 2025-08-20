@@ -15,7 +15,7 @@ export const useResult = (params: ResultRequestParams) => {
     staleTime: 1000 * 60 * 5, // 5분 동안 캐시 유지
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    enabled: !!params,
+    enabled: !!params.user_id,
   });
 };
 
@@ -29,5 +29,6 @@ export const useResultStatus = (params: ResultRequestParams) => {
     queryKey: [queryKeys.sidebar.resultStatus(params)],
     queryFn: () => getResultStatus(params),
     staleTime: 0, // 캐시 없이 매번 검증
+    enabled: !!params.user_id,
   });
 };
