@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { editorStep } from '@/types/editor';
+import { editorStep, editorStepKor } from '@/types/editor';
 import { useLogStore } from '@/stores/useLogStore';
 import { twMerge } from 'tailwind-merge';
 
@@ -8,12 +8,6 @@ interface TrainingProps {
 }
 
 const LOG_STAGES: editorStep[] = ['pre', 'model', 'train', 'eval'];
-const editorStepKor: Record<editorStep, string> = {
-  pre: '전처리',
-  model: '모델',
-  train: '학습',
-  eval: '평가',
-};
 
 export default function Training({ currentStage }: TrainingProps) {
   const [selectedStage, setSelectedStage] = useState<editorStep>(currentStage);

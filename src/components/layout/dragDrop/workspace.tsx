@@ -280,7 +280,8 @@ export default function Workspace() {
     <div ref={surfaceRef} className="relative flex-1 bg-white" onPointerUp={handlePointerUp}>
       {renderGrid()}
       {blocks.map(b => (
-        <div key={b.id} className="absolute z-[999]" style={{ left: b.x, top: b.y }}>
+        // 이거 z-index 너무 높으면 모달창을 뚫어버려서 낮춤
+        <div key={b.id} className="absolute z-[30]" style={{ left: b.x, top: b.y }}>
           <div className="flex w-[336px] my-2 text-white text-xl select-none">
             {b.color && (
               <img
