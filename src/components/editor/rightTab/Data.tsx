@@ -40,7 +40,7 @@ export default function Data() {
         ))}
       </select>
 
-      <Accordion type="multiple" defaultValue={['shape']} className="w-full">
+      <Accordion type="multiple" defaultValue={['shape', 'images']} className="w-full">
         <AccordionItem value="shape">
           <AccordionTrigger>Data Shape</AccordionTrigger>
           <AccordionContent>
