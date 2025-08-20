@@ -8,6 +8,12 @@ export type BlockItem = {
   isToggle?: boolean;
   toggleOn?: boolean;
   parameters: number[];
+  isString?: boolean;
+  stringValue?: string;
+  isMultiSelect?: boolean;
+  selectedOptions?: string[];
+  isDropdown?: boolean;
+  dropdownValue?: string;
   deletable?: boolean;
 };
 

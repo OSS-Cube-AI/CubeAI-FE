@@ -3,7 +3,19 @@ import { createContext, useContext, useState, ReactNode } from "react";
 /* ------------------------- 타입 정의 ------------------------- */
 export interface DragData {
   type: string;
-  meta?: Record<string, unknown>;
+  meta: {
+    label: string;
+    color: string;
+    isToggle: boolean;
+    toggleOn: boolean;
+    parameters: number[];
+    isString?: boolean;
+    stringValue?: string;
+    isMultiSelect?: boolean;
+    selectedOptions?: string[];
+    isDropdown?: boolean;
+    dropdownValue?: string;
+  };
 }
 
 export interface DragContextValue {

@@ -12,8 +12,8 @@ function getAccurateCoordinates(
   const rect = targetElement.getBoundingClientRect();
   
   // 스크롤 오프셋
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = document.documentElement.scrollLeft;
+  const scrollTop = document.documentElement.scrollTop;
   
   // 기본 좌표 계산
   let x = clientX - rect.left + scrollLeft;
@@ -94,7 +94,6 @@ export default function Workspace() {
   const { dragging, setDragging } = useDragCtx();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [blocks, setBlocks] = useState<BlockItem[]>(() => getBlocks());
-  const [showGrid, setShowGrid] = useState(true); // 그리드 표시 여부
 
   useEffect(() => {
     const unsub = subscribe(setBlocks);
@@ -106,11 +105,23 @@ export default function Workspace() {
     const current = getBlocks();
     const hasInit = current.some((b) => b.type === "init_fixed");
     if (!hasInit) {
+      // Editor.tsx에서의 Workspace 컴포넌트의 실제 width 계산
+      const blockWidth = 336; // 블록 너비
+      
+      // Editor.tsx 레이아웃 구조:
+      // - 왼쪽 사이드바: w-100 (100px)
+      // - Workspace: flex-1 (남은 공간)
+      // - 오른쪽 사이드바: w-100 (100px)
+      // 따라서 Workspace는 (전체 너비 - 700px)의 공간을 차지
+      const workspaceWidth = window.innerWidth - 700; // 700px = 좌우 사이드바 + 여백
+      const centerX = (workspaceWidth - blockWidth) / 2; // Workspace 중앙
+      const centerY = 100; // 상단에서 적당한 거리
+      
       addBlock({
         id: crypto.randomUUID(),
         type: "init_fixed",
-        x: 200,
-        y: 60,
+        x: centerX,
+        y: centerY,
         label: "실행시작",
         color: InitBg as unknown as string,
         isToggle: false,
@@ -121,54 +132,8 @@ export default function Workspace() {
     }
   }, []);
 
-  // 그리드 렌더링 함수
-  const renderGrid = () => {
-    if (!showGrid) return null;
-    
-    const gridSize = 20;
-    const gridLines = [];
-    
-    // 가로 선
-    for (let y = 0; y <= 1000; y += gridSize) {
-      gridLines.push(
-        <line
-          key={`h-${y}`}
-          x1="0"
-          y1={y}
-          x2="100%"
-          y2={y}
-          stroke="#f0f0f0"
-          strokeWidth="1"
-          strokeDasharray="2,2"
-        />
-      );
-    }
-    
-    // 세로 선
-    for (let x = 0; x <= 1000; x += gridSize) {
-      gridLines.push(
-        <line
-          key={`v-${x}`}
-          x1={x}
-          y1="0"
-          x2={x}
-          y2="100%"
-          stroke="#f0f0f0"
-          strokeWidth="1"
-          strokeDasharray="2,2"
-        />
-      );
-    }
-    
-    return (
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-0"
-        style={{ width: '100%', height: '100%' }}
-      >
-        {gridLines}
-      </svg>
-    );
-  };
+  // 그리드 렌더링 함수 제거
+  const renderGrid = () => null;
 
   const addBlockAt = (clientX: number, clientY: number) => {
     if (!dragging || !surfaceRef.current) return;
@@ -216,6 +181,12 @@ export default function Workspace() {
     const isToggle: boolean = !!meta.isToggle;
     const toggleOn: boolean = !!meta.toggleOn;
     const parameters: number[] = Array.isArray(meta.parameters) ? meta.parameters : [];
+    const isString: boolean = !!meta.isString;
+    const stringValue: string = meta.stringValue || "";
+    const isMultiSelect: boolean = !!meta.isMultiSelect;
+    const selectedOptions: string[] = Array.isArray(meta.selectedOptions) ? meta.selectedOptions : [];
+    const isDropdown: boolean = !!meta.isDropdown;
+    const dropdownValue: string = meta.dropdownValue || "";
 
     const block: BlockItem = {
       id: crypto.randomUUID(),
@@ -227,6 +198,12 @@ export default function Workspace() {
       isToggle,
       toggleOn,
       parameters,
+      isString,
+      stringValue,
+      isMultiSelect,
+      selectedOptions,
+      isDropdown,
+      dropdownValue,
       deletable: true,
     };
 
@@ -261,15 +238,6 @@ export default function Workspace() {
       className="relative flex-1 bg-white"
       onPointerUp={handlePointerUp}
     >
-      {/* 그리드 토글 버튼 */}
-      <button
-        className="absolute top-4 right-4 z-[1000] px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
-        onClick={() => setShowGrid(!showGrid)}
-        title="Toggle Grid"
-      >
-        {showGrid ? 'Hide Grid' : 'Show Grid'}
-      </button>
-      
       {renderGrid()}
       {blocks.map((b) => (
         <div key={b.id} className="absolute z-[999]" style={{ left: b.x, top: b.y }}>
@@ -281,11 +249,34 @@ export default function Workspace() {
               <div className="flex items-center justify-start w-full h-full text-center">
                 {b.label}
               </div>
-              {b.parameters.map((p, i) => (
-                <div key={i} className="w-14 h-7 bg-white rounded-full mt-[5px] ml-[10px] flex items-center justify-center">
+              {/* 파라미터 값들 렌더링 (숫자) */}
+              {!b.isString && b.parameters.map((p, i) => (
+                <div key={`param-${i}`} className="w-14 h-7 bg-white rounded-full mt-[5px] ml-[10px] flex items-center justify-center">
                   <div className="w-full text-center text-black text-sm">{p}</div>
                 </div>
               ))}
+              
+              {/* 문자열 값 렌더링 */}
+              {b.isString && b.stringValue && (
+                <div key="string-value" className="w-28 h-7 bg-white rounded-full mt-[5px] ml-[10px] flex items-center justify-center">
+                  <div className="w-full text-center text-black text-sm px-2 truncate">{b.stringValue}</div>
+                </div>
+              )}
+
+              {/* 드롭다운 값 렌더링 */}
+              {b.isDropdown && b.dropdownValue && (
+                <div key="dropdown-value" className="w-24 h-7 bg-white rounded-full mt-[5px] ml-[10px] flex items-center justify-center">
+                  <div className="w-full text-center text-black text-xs px-2 truncate">{b.dropdownValue}</div>
+                </div>
+              )}
+
+              {/* 다중 선택 값 렌더링 */}
+              {b.isMultiSelect && b.selectedOptions && b.selectedOptions.length > 0 && (
+                <div key="multiselect-value" className="w-24 h-7 bg-white rounded-full mt-[5px] ml-[10px] flex items-center justify-center">
+                  <div className="w-full text-center text-black text-xs px-2 truncate">{b.selectedOptions.length}개 선택</div>
+                </div>
+              )}
+
               {b.isToggle && (
                 <div className="ml-[80px] mt-[5px]">
                   <div className={`relative w-12 h-9 rounded-[30px] overflow-hidden ${b.toggleOn ? 'bg-sky-300' : 'bg-neutral-200 border border-zinc-200'}`}>
