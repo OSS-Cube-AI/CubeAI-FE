@@ -1,5 +1,4 @@
 import { getInstance as getFormdataInstance } from '@/apis/formdata';
-import { getUserId } from '@/utils/userId';
 
 export type Stage = 'pre' | 'model' | 'train' | 'eval' | 'all';
 
@@ -47,15 +46,16 @@ function appendField(fd: FormData, key: string, value: unknown) {
     return;
   }
   if (typeof value === 'boolean') {
+    // 토글은 켜져있을 때만 전송 (true -> 'on', false -> 전송하지 않음)
     if (value) fd.append(key, 'on');
     return;
   }
   fd.append(key, String(value));
 }
 
-export async function convertByPost(stage: Stage, fields: Record<string, unknown>) {
+export async function convertByPost(stage: Stage, fields: Record<string, unknown>, userId: string) {
   const fd = new FormData();
-  fd.append('user_id', getUserId());
+  fd.append('user_id', userId);
   fd.append('stage', stage);
   Object.entries(fields ?? {}).forEach(([k, v]) => appendField(fd, k, v));
 

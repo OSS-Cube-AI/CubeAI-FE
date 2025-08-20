@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getBlocks, subscribe, type BlockItem } from '@/hooks/dragDrop/blocksStore';
 import { blocksToParams } from '@/hooks/dragDrop/blocksToParams';
-import { useConvertQuery, type Stage } from '@/apis/blocks/queries/useConvert';
+import { useConvertQuery } from '@/apis/blocks/queries/useConvert';
+import { useUserStore } from '@/stores/useUserStore';
+import type { Stage } from '@/apis/blocksConvert';
 
 export function useStoreConvertQuery(stage: Stage, options?: { enabled?: boolean }) {
   const [blocks, setBlocks] = useState<BlockItem[]>(() => getBlocks());
+  const userId = useUserStore(state => state.userId);
 
   useEffect(() => {
     const unsub = subscribe(setBlocks);
@@ -18,5 +21,10 @@ export function useStoreConvertQuery(stage: Stage, options?: { enabled?: boolean
 
   const params = useMemo(() => blocksToParams(filtered), [filtered]);
 
-  return useConvertQuery({ stage, params, enabled: options?.enabled ?? true });
+  return useConvertQuery({
+    stage,
+    params,
+    userId: userId || 'anonymous',
+    enabled: options?.enabled ?? true,
+  });
 }

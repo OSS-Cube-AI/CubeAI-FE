@@ -12,6 +12,8 @@ import InitBg from '@/assets/block/init.svg';
 import { convertByPost } from '@/apis/blocksConvert';
 import { blocksToParams } from '@/hooks/dragDrop/blocksToParams';
 import { useConvertResultStore } from '@/hooks/useConvertResultStore';
+import { useUserStore } from '@/stores/useUserStore';
+import type { editorStep } from '@/types/editor';
 
 // 좌표 계산 유틸리티 함수
 function getAccurateCoordinates(
@@ -130,12 +132,17 @@ function reflowChain(blocksDraft: BlockItem[]) {
   }
 }
 
-export default function Workspace() {
+interface WorkspaceProps {
+  editorStep: editorStep;
+}
+
+export default function Workspace({ editorStep }: WorkspaceProps) {
   const { dragging, setDragging } = useDragCtx();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [blocks, setBlocks] = useState<BlockItem[]>(() => getBlocks());
   const debounceRef = useRef<number | null>(null);
   const { setCode, setLoading, setError } = useConvertResultStore();
+  const userId = useUserStore(state => state.userId);
 
   useEffect(() => {
     const unsub = subscribe(setBlocks);
@@ -151,7 +158,7 @@ export default function Workspace() {
         const params = blocksToParams(effective);
         setLoading(true);
         setError(null);
-        const code = await convertByPost('all', params);
+        const code = await convertByPost(editorStep, params, userId || 'anonymous');
         setCode(typeof code === 'string' ? code : '');
       } catch (e: any) {
         setError(e?.message ?? 'convert failed');
@@ -162,7 +169,7 @@ export default function Workspace() {
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-  }, [blocks]);
+  }, [blocks, userId, editorStep]);
 
   // 최초 고정 블록 시드(존재하지 않을 때만 추가)
   useEffect(() => {
@@ -308,7 +315,7 @@ export default function Workspace() {
       {renderGrid()}
       {blocks.map(b => (
         // 이거 z-index 너무 높으면 모달창을 뚫어버려서 낮춤
-        <div key={b.id} className="absolute z-[30]" style={{ left: b.x, top: b.y }}>
+        <div key={b.id} className="absolute z-[99]" style={{ left: b.x, top: b.y }}>
           <div className="flex w-[336px] my-2 text-white text-xl select-none">
             {b.color && (
               <img

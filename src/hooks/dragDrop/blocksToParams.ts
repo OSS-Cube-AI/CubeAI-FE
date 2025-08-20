@@ -85,7 +85,11 @@ export function blocksToParams(blocks: BlockItem[]): Record<string, unknown> {
       continue;
     }
 
-    // 토글은 전송하지 않음 (필수값만 전송 정책)
+    // 토글 값 (켜져있을 때만 true로 전송)
+    if (b.isToggle && b.toggleOn) {
+      params[key] = true;
+      continue;
+    }
 
     // 문자열 값 (존재할 때만)
     const sv = (b.stringValue ?? '').trim();

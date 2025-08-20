@@ -5,10 +5,8 @@ import NodePalette from '@/hooks/dragDrop/NodePalette';
 import { DragProvider } from '@/hooks/dragDrop/DragContext';
 import DragPreview from '@/hooks/dragDrop/DragPreview';
 import Header from '@/components/layout/Header';
-
 import { useLogStore } from '@/stores/useLogStore';
 import SSEComponent from '@/components/common/SSEComponent';
-
 import AiChatButton from '@/components/editor/AiChatButton';
 import Code from '@/components/editor/rightTab/Code';
 import Data from '@/components/editor/rightTab/Data';
@@ -21,7 +19,6 @@ import WelcomeDialog from '@/components/editor/dialog/WelcomeDialog';
 import type { editorStep } from '@/types/editor';
 import { useStoreConvertQuery } from '@/apis/blocks/queries/useStoreConvert';
 import { AI_BACKEND_URL } from '@/constants/api';
-import { getUserId } from '@/utils/userId';
 
 const leftTabsConfig: {
   value: '데이터 전처리' | '모델 설계' | '학습하기' | '평가하기';
@@ -39,11 +36,10 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
-  const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
   const { data: convertedCode = '', isPending: isConverting } = useStoreConvertQuery(editorStep, {
     enabled: true,
   });
-  const [isIdInitialized, setIsIdInitialized] = useState(false);
+
   const [isIdModalOpen, setIsIdModalOpen] = useState(false);
   const addLog = useLogStore(state => state.addLog);
   const clearLogs = useLogStore(state => state.clearLogs);
@@ -176,7 +172,7 @@ export default function EditorPage() {
             {/* 여기에 DND 요소 ㄱㄱ */}
             <section className="flex-1 w-full">
               {/* 중앙 캔버스 영역 (드롭 지점) */}
-              <Workspace />
+              <Workspace editorStep={editorStep} />
             </section>
 
             {/* 오른쪽 사이드바 */}

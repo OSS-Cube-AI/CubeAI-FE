@@ -1,6 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
 import { AI_BACKEND_URL } from '@/constants/api';
-import { getUserId } from '@/utils/userId';
 
 /** ----- 공통 타입 ----- */
 export type Stage = 'pre' | 'model' | 'train' | 'eval' | 'all';
@@ -17,9 +16,9 @@ export type FieldValue = Primitive | Primitive[];
  * - number: 문자열로 변환
  * - null/undefined는 무시
  */
-export function toFormData(stage: Stage, fields: Record<string, FieldValue>) {
+export function toFormData(stage: Stage, fields: Record<string, FieldValue>, userId: string) {
   const fd = new FormData();
-  fd.append('user_id', getUserId());
+  fd.append('user_id', userId);
   fd.append('stage', stage);
 
   Object.entries(fields ?? {}).forEach(([k, v]) => {
@@ -30,6 +29,7 @@ export function toFormData(stage: Stage, fields: Record<string, FieldValue>) {
       v.forEach(item => {
         if (item === null || item === undefined) return;
         if (typeof item === 'boolean') {
+          // 토글은 켜져있을 때만 전송
           if (item) fd.append(k, 'on');
         } else {
           fd.append(k, String(item));
@@ -39,6 +39,7 @@ export function toFormData(stage: Stage, fields: Record<string, FieldValue>) {
     }
 
     if (typeof v === 'boolean') {
+      // 토글은 켜져있을 때만 전송 (true -> 'on', false -> 전송하지 않음)
       if (v) fd.append(k, 'on');
     } else {
       fd.append(k, String(v));
@@ -119,10 +120,10 @@ export type ConvertFields =
   | Record<string, FieldValue>;
 
 /** ----- /convert : 코드 생성/변환 (form-data) ----- */
-export type ConvertArgs = { stage: Stage; fields: ConvertFields };
+export type ConvertArgs = { stage: Stage; fields: ConvertFields; userId: string };
 
-export async function postConvert({ stage, fields }: ConvertArgs): Promise<string> {
-  const fd = toFormData(stage, fields as Record<string, FieldValue>);
+export async function postConvert({ stage, fields, userId }: ConvertArgs): Promise<string> {
+  const fd = toFormData(stage, fields as Record<string, FieldValue>, userId);
 
   // Debug: FormData 내용을 콘솔에 출력
   try {
