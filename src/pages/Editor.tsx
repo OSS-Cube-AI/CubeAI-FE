@@ -14,6 +14,8 @@ import Code from '@/components/editor/rightTab/Code';
 import Data from '@/components/editor/rightTab/Data';
 import Training from '@/components/editor/rightTab/Training';
 
+import FinalResultDialog from '@/components/editor/FinalResultDialog';
+
 import type { editorStep } from '@/types/editor';
 
 const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL;
@@ -34,7 +36,8 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
-  const { addLog, clearLogs } = useLogStore();
+  const addLog = useLogStore(state => state.addLog);
+  const clearLogs = useLogStore(state => state.clearLogs);
 
   const {
     TabsList: LeftTabList,
