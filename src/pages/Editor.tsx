@@ -10,6 +10,8 @@ import Code from '@/components/editor/rightTab/Code';
 import Data from '@/components/editor/rightTab/Data';
 import Training from '@/components/editor/rightTab/Training';
 
+import { SampleDto } from '@/apis/sidebar/dto/dataInfo';
+
 export default function EditorPage() {
   const {
     TabsList: LeftTabList,
@@ -82,10 +84,10 @@ export default function EditorPage() {
                   <Code codeString={"import python\n\nprint('Hello, World!')"} />
                 </RightTabContent>
                 <RightTabContent value="데이터">
-                  <Data />
+                  <Data data={mockApiResponse} type="sample" />
                 </RightTabContent>
                 <RightTabContent value="학습">
-                  <Training />
+                  <Training logs={DUMMY_LOGS} />
                 </RightTabContent>
               </RightTabsContainer>
             </aside>
@@ -99,3 +101,20 @@ export default function EditorPage() {
     </>
   );
 }
+
+const DUMMY_LOGS = [
+  'Training started...',
+  'Epoch 1/10',
+  'Loss: 0.1234',
+  'Epoch 2/10',
+  'Loss: 0.5678',
+  'Training completed.',
+];
+
+const mockApiResponse: SampleDto = {
+  columns: ['label', 'pixel0', 'pixel1'],
+  sample: [
+    [5, 0, 0],
+    [0, 0, 0],
+  ],
+};
