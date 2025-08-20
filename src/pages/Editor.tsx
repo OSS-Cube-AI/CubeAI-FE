@@ -77,7 +77,7 @@ export default function EditorPage() {
             <aside className="flex w-100 h-full font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
               <RightTabsContainer>
                 <RightTabContent value="코드">
-                  <Code />
+                  <Code codeString={"import python\n\nprint('Hello, World!')"}/>
                 </RightTabContent>
                 <RightTabContent value="데이터">
                   <Data />
