@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
+
 import { getInstance } from "@/apis/instance";
 import { ConversationResponse } from "@/apis/chat/dto";
 import { useGetConversations, usePostConversations } from "@/apis/chat";
@@ -6,7 +8,7 @@ import { useGetConversations, usePostConversations } from "@/apis/chat";
 import AiTutor from '@/assets/icons/ai-tutor.svg';
 import SendIcon from '@/assets/icons/send.svg';
 
-export default function Chat() {
+export default function Chat({ isOpen }: { isOpen: boolean }) {
   const [chatSessionId, setChatSessionId] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [chatData, setChatData] = useState<ConversationResponse | null>(null);
@@ -88,10 +90,17 @@ export default function Chat() {
 
   const conversation = chatData?.conversation || [];
 
-  return (
-    <div className="w-full h-full">
+  const chatClasses = `
+    fixed top-10 right-10 bg-white border border-gray-300 shadow-lg rounded-[25px] z-10
+    transition-transform transform-gpu duration-300 ease-in-out w-[400px] h-[90vh]
+    ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}
+  `;
+
+
+  return createPortal(
+    <div className={chatClasses}>
       {/** AI 튜터 헤더 */}
-      <section className="flex-shrink-0 w-full h-24 flex items-center justify-center bg-[#EEF6FF]">
+      <section className="flex-shrink-0 w-full h-24 flex items-center justify-center bg-[#EEF6FF] rounded-t-[25px]">
         <div className="w-14 h-14 p-[7px] rounded-[25px] bg-white flex justify-center items-center">
           <img src={AiTutor} alt="AI Tutor Icon" className="" />
         </div>
@@ -119,10 +128,10 @@ export default function Chat() {
             <AssistantChat message={"안녕하세요. AI 튜터예요 🤖\n무엇이 궁금해서 저를 찾아오셨나요?"} />
             {conversation.map((chat, index) => (
               chat.role === 'user' ? (
-                <div className="flex justify-end"><UserChat key={index} message={chat.content} /></div>
+                <div key={`user-${index}`} className="flex justify-end"><UserChat message={chat.content} /></div>
               ) : (
                 chat.role === 'assistant' && (
-                  <AssistantChat key={index} message={chat.content} />
+                  <AssistantChat key={`assistant-${index}`} message={chat.content} />
                 )
               )
             ))}
@@ -131,7 +140,7 @@ export default function Chat() {
       </section>
       
       {/** 채팅 입력창 */}
-      <section className="flex-shrink-0 w-full px-5 py-4 bg-[#EEF6FF] flex items-center justify-center gap-3 mt-4">
+      <section className="flex-shrink-0 w-full px-5 py-4 bg-[#EEF6FF] rounded-b-[25px] flex items-center justify-center gap-3 mt-4">
         <div className="bg-white px-5 py-[6px] flex-1 justify-center items-center rounded-[10px] w-full">
           <textarea
             ref={textareaRef} // ref 연결
@@ -152,6 +161,7 @@ export default function Chat() {
         </button>
       </section>
     </div>
+    , document.getElementById("ai-chat") as HTMLElement
   )
 } 
 

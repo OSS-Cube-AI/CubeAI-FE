@@ -6,8 +6,7 @@ import Finished from '@/assets/icons/finish.png';
 import NotFinished from '@/assets/icons/not_finish.png';
 
 function ProgressBar({ value, width }: { value: number; width?: string }) {
-  const pct = Math.max(0, Math.min(100, value));
-  return (
+  const pct = Math.max(0, Math.min(100, value)); return (
     <div className={`h-6 rounded-full shadow-[0_0_3px_1px_rgba(0,144,251,0.8)] overflow-hidden bg-white ${width || 'w-64'}`}>
       <div
         className="h-full bg-sky-400 flex items-center justify-end pr-2 rounded-l-full"
