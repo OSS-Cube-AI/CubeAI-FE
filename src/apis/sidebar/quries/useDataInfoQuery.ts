@@ -12,6 +12,9 @@ export const useDataInfo = (params: DataInfoQueryParams) => {
   return useQuery({
     queryKey: [queryKeys.sidebar.data(params)],
     queryFn: () => getDataInfo(params),
+    staleTime: 1000 * 60 * 5, // 5분 동안 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     enabled: !!params.file,
   });
 };

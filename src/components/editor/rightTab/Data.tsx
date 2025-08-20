@@ -24,6 +24,7 @@ export default function Data() {
   const { data: shapeData } = useDataInfo({ file, type: 'shape' });
   // const { data: structureData } = useDataInfo({ file, type: 'structure' });
   const { data: sampleData } = useDataInfo({ file, type: 'sample', n: 10 });
+  const { data: imagesData } = useDataInfo({ file, type: 'images', n: 9 });
 
   return (
     <div className="p-2">
@@ -58,6 +59,12 @@ export default function Data() {
             <StructureInfo data={structureData as StructureDto} />
           </AccordionContent>
         </AccordionItem> */}
+        <AccordionItem value="images">
+          <AccordionTrigger>Image Sample (9개)</AccordionTrigger>
+          <AccordionContent>
+            <ImagesInfo data={imagesData as ImagesDto} />
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
     </div>
   );
@@ -132,5 +139,24 @@ function SampleInfo({ data }: { data?: SampleDto }) {
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+function ImagesInfo({ data }: { data?: ImagesDto }) {
+  if (!data) return <div>데이터를 불러오는 중...</div>;
+
+  return (
+    <div className="grid grid-cols-3 gap-4 p-2">
+      {data.images.map((image, index) => (
+        <div key={index} className="flex flex-col items-center border rounded-md p-2">
+          <img
+            // base64 데이터를 이미지로 표시하는 부분
+            src={`data:image/png;base64,${image}`}
+            alt={`Sample label: ${index + 1}`}
+            className="w-full h-auto object-contain"
+          />
+        </div>
+      ))}
+    </div>
   );
 }
