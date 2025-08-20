@@ -63,11 +63,17 @@ export default function EditorPage() {
               <LeftTabsContainer>
                 <LeftTabContent value="데이터 전처리">
                   {/* 드래그 가능한 노드 팔레트 */}
-                  <NodePalette />
+                  <NodePalette selectedTab="데이터 전처리" />
                 </LeftTabContent>
-                <LeftTabContent value="모델 설계">Content B</LeftTabContent>
-                <LeftTabContent value="학습하기">Content C</LeftTabContent>
-                <LeftTabContent value="평가하기">Content D</LeftTabContent>
+                <LeftTabContent value="모델 설계">
+                  <NodePalette selectedTab="모델 설계" />
+                </LeftTabContent>
+                <LeftTabContent value="학습하기">
+                  <NodePalette selectedTab="학습하기" />
+                </LeftTabContent>
+                <LeftTabContent value="평가하기">
+                  <NodePalette selectedTab="평가하기" />
+                </LeftTabContent>
               </LeftTabsContainer>
             </aside>
 

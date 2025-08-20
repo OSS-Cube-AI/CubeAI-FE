@@ -8,6 +8,12 @@ export type BlockItem = {
   isToggle?: boolean;
   toggleOn?: boolean;
   parameters: number[];
+  isString?: boolean;
+  stringValue?: string;
+  isMultiSelect?: boolean;
+  selectedOptions?: string[];
+  isDropdown?: boolean;
+  dropdownValue?: string;
   deletable?: boolean;
 };
 
@@ -43,6 +49,11 @@ export function clearBlocks() {
     blocks.splice(0, blocks.length);
     notify();
   }
+}
+
+export function mutateBlocks(mutator: (draft: BlockItem[]) => void) {
+  mutator(blocks);
+  notify();
 }
 
 export function subscribe(fn: Listener) {
