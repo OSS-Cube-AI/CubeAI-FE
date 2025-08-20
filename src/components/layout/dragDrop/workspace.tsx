@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDragCtx } from "@/hooks/dragDrop/DragContext";
-import { addBlock, getBlocks, subscribe, type BlockItem, removeBlock } from "@/hooks/dragDrop/blocksStore";
+import { addBlock, getBlocks, subscribe, type BlockItem, removeBlock, mutateBlocks } from "@/hooks/dragDrop/blocksStore";
 import InitBg from "@/assets/block/init.svg";
 
 // 좌표 계산 유틸리티 함수
@@ -88,6 +88,36 @@ function smartSnapToGrid(
   }
   
   return { x: snappedX, y: snappedY };
+}
+
+function reflowChain(blocksDraft: BlockItem[]) {
+  const blockHeight = 112;
+  const overlapDistance = 40;
+  const init = blocksDraft.find(b => b.type === "init_fixed");
+  if (!init) return;
+
+  const endBlocks = blocksDraft.filter(b => b.type === "end");
+  const middle = blocksDraft
+    .filter(b => b.type !== "init_fixed" && b.type !== "end")
+    .sort((a, b) => a.y - b.y);
+
+  // 시작 위치는 init 바로 아래
+  let currentX = init.x;
+  let currentY = init.y + blockHeight - overlapDistance;
+
+  // 중간 블록들 재배치
+  for (const m of middle) {
+    m.x = currentX;
+    m.y = currentY;
+    currentY = m.y + blockHeight - overlapDistance;
+  }
+
+  // end 블록들 재배치: 항상 마지막에 배치
+  for (const e of endBlocks) {
+    e.x = currentX;
+    e.y = currentY;
+    currentY = e.y + blockHeight - overlapDistance;
+  }
 }
 
 export default function Workspace() {
@@ -207,17 +237,14 @@ export default function Workspace() {
       deletable: true,
     };
 
-    console.log('Block placement:', {
-      clientX, clientY,
-      calculated: { x, y },
-      initBlock: initBlock ? { x: initBlock.x, y: initBlock.y } : null,
-      final: { finalX, finalY },
-      blockSize: { width: blockWidth, height: blockHeight },
-      overlap: '40px',
-      placement: initBlock ? 'below_init' : 'smart_snap'
+    // 블록 추가
+    addBlock(block);
+
+    // 체인 재정렬: 항상 'end'가 마지막이 되도록, 중간은 붙어서 쌓이도록
+    mutateBlocks((draft) => {
+      reflowChain(draft);
     });
 
-    addBlock(block);
     setDragging(null);
   };
 
@@ -227,6 +254,13 @@ export default function Workspace() {
     window.addEventListener("pointerup", onUp);
     return () => window.removeEventListener("pointerup", onUp);
   }, [dragging]);
+
+  const handleRemoveBlock = (id: string) => {
+    removeBlock(id);
+    mutateBlocks((draft) => {
+      reflowChain(draft);
+    });
+  };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     addBlockAt(e.clientX, e.clientY);
@@ -287,7 +321,7 @@ export default function Workspace() {
               {b.deletable !== false && (
                 <button
                   className="absolute top-1 right-1 z-[1000] size-4 leading-4 text-center rounded-full bg-white/30 text-zinc-700 hover:bg-red-500 hover:text-white transition-all duration-200 opacity-60 hover:opacity-100 text-xs"
-                  onClick={(e) => { e.stopPropagation(); removeBlock(b.id); }}
+                  onClick={(e) => { e.stopPropagation(); handleRemoveBlock(b.id); }}
                   title="Remove"
                 >
                   ×

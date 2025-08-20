@@ -51,6 +51,11 @@ export function clearBlocks() {
   }
 }
 
+export function mutateBlocks(mutator: (draft: BlockItem[]) => void) {
+  mutator(blocks);
+  notify();
+}
+
 export function subscribe(fn: Listener) {
   listeners.add(fn);
   return () => {

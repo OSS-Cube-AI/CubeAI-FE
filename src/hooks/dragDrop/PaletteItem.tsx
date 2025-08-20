@@ -180,6 +180,11 @@ export default function PaletteItem({
               onChange={(e) => {
                 setStringValue(e.target.value);
               }}
+              onBlur={(e) => {
+                if (e.target.value.trim() === "") {
+                  setStringValue(stringDefault || "");
+                }
+              }}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               className="w-full text-center text-black text-sm outline-none bg-transparent px-2"
