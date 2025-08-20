@@ -11,10 +11,11 @@ export default function Code({ codeString }: { codeString: string }) {
       <section className="w-full h-15 border-b-2px border-[#C3CCD9] flex items-center justify-start gap-5 pl-5">
         {CODE_BUTTONS.map(data => (
           <button
+            key={data.alt}
             onClick={data.onclick}
             className="p-2 rounded-2xl hover:bg-[#f0f0f0] flex justify-center items-center"
           >
-            <img src={data.icon} alt={data.alt} key={data.alt} />
+            <img src={data.icon} alt={data.alt} />
           </button>
         ))}
       </section>

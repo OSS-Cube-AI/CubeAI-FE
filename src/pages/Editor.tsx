@@ -16,7 +16,7 @@ import Training from '@/components/editor/rightTab/Training';
 import { SampleDto } from '@/apis/sidebar/dto/dataInfo';
 import type { editorStep } from '@/types/editor';
 
-const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL;
+const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL ?? 'http://211.188.56.255:9022';
 
 const leftTabsConfig: {
   value: '데이터 전처리' | '모델 설계' | '학습하기' | '평가하기';

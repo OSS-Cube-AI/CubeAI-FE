@@ -19,7 +19,6 @@ const createConfiguredInstance = (baseURL: string): AxiosInstance => {
   const instance = axios.create({
     baseURL,
     responseType: 'json',
-    headers: { 'Content-Type': 'application/json' },
     timeout: 4000,
     withCredentials: true,
   });
@@ -27,9 +26,23 @@ const createConfiguredInstance = (baseURL: string): AxiosInstance => {
   // Interceptors 설정 (공통 로직)
   instance.interceptors.request.use(
     config => {
-      const accessToken = ''; // 실제 토큰을 가져오는 로직
+      // JSON 기본 헤더는 강제하지 않되, FormData가 아닐 때만 명시적으로 설정
+      const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+      if (!isFormData) {
+        config.headers = config.headers ?? {};
+        if (!config.headers['Content-Type'] && !config.headers['content-type']) {
+          config.headers['Content-Type'] = 'application/json';
+        }
+      } else if (config.headers) {
+        // FormData 경우 브라우저가 boundary 포함하여 자동 설정하도록 제거
+        delete (config.headers as any)['Content-Type'];
+        delete (config.headers as any)['content-type'];
+      }
+
+      const accessToken = '';
       if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
+        config.headers = config.headers ?? {};
+        (config.headers as any).Authorization = `Bearer ${accessToken}`;
       }
       return config;
     },
