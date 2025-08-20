@@ -180,7 +180,10 @@ export default function EditorPage() {
               <RightTabsContainer>
                 <RightTabContent value="코드">
                   {/* 변환 결과 표시 */}
-                  <Code codeString={isConverting ? '# Generating…' : convertedCode} />
+                  <Code
+                    codeString={isConverting ? '# Generating…' : convertedCode}
+                    currentStage={editorStep}
+                  />
                 </RightTabContent>
                 <RightTabContent value="데이터">
                   <Data />
@@ -199,7 +202,7 @@ export default function EditorPage() {
       <AiChatButton />
       {/* SSEComponent를 렌더링하여 로그 스트리밍을 시작합니다. */}
       <SSEComponent
-        url={`${AI_BACKEND_URL}/logs/stream?stage=${editorStep}`}
+        url={`${AI_BACKEND_URL}/logs/stream?stage=${editorStep}&user_id=${encodeURIComponent(userId || 'anonymous')}`}
         onMessage={handleNewLog}
       />
     </>
