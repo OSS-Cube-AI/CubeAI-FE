@@ -1,4 +1,4 @@
-// Data.tsx
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -7,91 +7,130 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { ShapeDto, SampleDto, ImagesDto } from '@/apis/sidebar/dto/dataInfo';
+import { useDataInfo } from '@/apis/sidebar/quries/useDataInfoQuery';
 
-import { ShapeDto, StructureDto, SampleDto } from '@/apis/sidebar/dto/dataInfo';
+const FILE_TYPE_LIST = ['mnist_train.csv', 'mnist_test.csv'];
 
-interface DataProps {
-  data: ShapeDto | StructureDto | SampleDto | null;
-  type: 'shape' | 'structure' | 'sample' | 'images';
+export default function Data() {
+  const [file, setFile] = useState<(typeof FILE_TYPE_LIST)[number]>(FILE_TYPE_LIST[0]);
+
+  const { data: shapeData } = useDataInfo({ file, type: 'shape' });
+  // const { data: structureData } = useDataInfo({ file, type: 'structure' });
+  const { data: sampleData } = useDataInfo({ file, type: 'sample', n: 10 });
+
+  return (
+    <div className="p-2">
+      <select
+        value={file}
+        onChange={e => setFile(e.target.value)}
+        className="w-full p-2 border rounded mb-4"
+      >
+        {FILE_TYPE_LIST.map(f => (
+          <option key={f} value={f}>
+            {f}
+          </option>
+        ))}
+      </select>
+
+      <Accordion type="multiple" defaultValue={['shape']} className="w-full">
+        <AccordionItem value="shape">
+          <AccordionTrigger>Data Shape</AccordionTrigger>
+          <AccordionContent>
+            <ShapeInfo data={shapeData as ShapeDto} />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="sample">
+          <AccordionTrigger>Data Sample (10개)</AccordionTrigger>
+          <AccordionContent>
+            <SampleInfo data={sampleData as SampleDto} />
+          </AccordionContent>
+        </AccordionItem>
+        {/* <AccordionItem value="structure">
+          <AccordionTrigger>Data Structure</AccordionTrigger>
+          <AccordionContent>
+            <StructureInfo data={structureData as StructureDto} />
+          </AccordionContent>
+        </AccordionItem> */}
+      </Accordion>
+    </div>
+  );
 }
 
-export default function Data({ data, type }: DataProps) {
-  if (!data) {
-    return <div>데이터를 불러오는 중...</div>;
-  }
+function ShapeInfo({ data }: { data?: ShapeDto }) {
+  if (!data) return <div>데이터를 불러오는 중...</div>;
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>항목</TableHead>
+          <TableHead>값</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell>행 (Rows)</TableCell>
+          <TableCell>{data.rows}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>열 (Cols)</TableCell>
+          <TableCell>{data.cols}</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  );
+}
 
-  // 데이터 타입에 따라 다른 표를 렌더링
-  switch (type) {
-    case 'shape':
-      const shapeData = data as ShapeDto;
-      return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>항목</TableHead>
-              <TableHead>값</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>행 (Rows)</TableCell>
-              <TableCell>{shapeData.rows}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>열 (Cols)</TableCell>
-              <TableCell>{shapeData.cols}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      );
+// 얘는 일단 안씀
+//
+// function StructureInfo({ data }: { data?: StructureDto }) {
+//   if (!data) return <div>데이터를 불러오는 중...</div>;
+//   return (
+//     <Table>
+//       <TableHeader>
+//         <TableRow>
+//           <TableHead>컬럼명</TableHead>
+//           <TableHead>데이터 타입</TableHead>
+//         </TableRow>
+//       </TableHeader>
+//       <TableBody>
+//         {data.columns.map((column, index) => (
+//           <TableRow key={index}>
+//             <TableCell className="font-medium">{column.name}</TableCell>
+//             <TableCell>{column.dtype}</TableCell>
+//           </TableRow>
+//         ))}
+//       </TableBody>
+//     </Table>
+//   );
+// }
 
-    case 'structure':
-      const structureData = data as StructureDto;
-      return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>컬럼명</TableHead>
-              <TableHead>데이터 타입</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {structureData.columns.map((column, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{column.name}</TableCell>
-                <TableCell>{column.dtype}</TableCell>
-              </TableRow>
+function SampleInfo({ data }: { data?: SampleDto }) {
+  if (!data) return <div>데이터를 불러오는 중...</div>;
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {data.columns.map((column, index) => (
+            <TableHead key={index}>{column}</TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data.sample.map((row, rowIndex) => (
+          <TableRow key={rowIndex}>
+            {row.map((cell, cellIndex) => (
+              <TableCell key={cellIndex}>{String(cell)}</TableCell>
             ))}
-          </TableBody>
-        </Table>
-      );
-
-    case 'sample':
-      const sampleData = data as SampleDto;
-      return (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {sampleData.columns.map((column, index) => (
-                <TableHead key={index}>{column}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sampleData.sample.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {row.map((cell, cellIndex) => (
-                  <TableCell key={cellIndex}>{String(cell)}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      );
-
-    // images 타입은 표가 아닌 이미지 갤러리로 보여주는 것이 더 적합하므로
-    // 여기서는 따로 처리하지 않음
-    default:
-      return <div>지원하지 않는 데이터 유형입니다.</div>;
-  }
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 }

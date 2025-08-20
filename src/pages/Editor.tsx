@@ -164,7 +164,7 @@ export default function EditorPage() {
                   <Code codeString={"import python\n\nprint('Hello, World!')"} />
                 </RightTabContent>
                 <RightTabContent value="데이터">
-                  <Data data={mockApiResponse} type="sample" />
+                  <Data />
                 </RightTabContent>
                 <RightTabContent value="학습">
                   <Training logs={trainingLogs} />
