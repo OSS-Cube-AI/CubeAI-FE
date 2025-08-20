@@ -1,9 +1,4 @@
-import {
-  Outlet,
-  RouteObject,
-  RouterProvider,
-  createBrowserRouter,
-} from 'react-router-dom';
+import { Outlet, RouteObject, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import SomethingWentWrongPage from '@/components/status/error/SomethingWentWrongPage';
 import { UnknownErrorBoundary } from '@/components/status/error/UnknownErrorBoundary';
 import { APIErrorBoundary } from '@/components/status/error/APIErrorBoundary';
@@ -47,7 +42,7 @@ const router = createBrowserRouter([
         {
           path: '/editor',
           element: <EditorPage />,
-        }
+        },
       ]),
       {
         path: '*',

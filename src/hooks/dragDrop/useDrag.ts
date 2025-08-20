@@ -1,6 +1,6 @@
 // useDrag.ts
-import { useCallback, useRef, useState } from "react";
-import { useDragCtx } from "./DragContext";
+import { useCallback, useRef, useState } from 'react';
+import { useDragCtx } from './DragContext';
 
 type Point = { x: number; y: number };
 
@@ -43,18 +43,24 @@ export function useDrag(options: UseDragOptions = {}) {
   const startTimeRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const cleanupListeners = useCallback((handlePointerUp: any, handlePointerCancel: any, handlePointerMove: any) => {
-    window.removeEventListener("pointerup", handlePointerUp);
-    window.removeEventListener("pointercancel", handlePointerCancel);
-    window.removeEventListener("pointermove", handlePointerMove);
-  }, []);
+  const cleanupListeners = useCallback(
+    (handlePointerUp: any, handlePointerCancel: any, handlePointerMove: any) => {
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerCancel);
+      window.removeEventListener('pointermove', handlePointerMove);
+    },
+    [],
+  );
 
-  const handlePointerMove = useCallback((e: PointerEvent) => {
-    if (!draggingRef.current) return;
+  const handlePointerMove = useCallback(
+    (e: PointerEvent) => {
+      if (!draggingRef.current) return;
 
-    const position = { x: e.clientX, y: e.clientY };
-    setDragPosition(position);
-  }, [setDragPosition]);
+      const position = { x: e.clientX, y: e.clientY };
+      setDragPosition(position);
+    },
+    [setDragPosition],
+  );
 
   const handlePointerUp = useCallback(
     (e: PointerEvent) => {
@@ -80,9 +86,13 @@ export function useDrag(options: UseDragOptions = {}) {
         durationMs,
       });
 
-      cleanupListeners(handlePointerUp as any, handlePointerCancel as any, handlePointerMove as any);
+      cleanupListeners(
+        handlePointerUp as any,
+        handlePointerCancel as any,
+        handlePointerMove as any,
+      );
     },
-    [onEnd, handlePointerMove, setDragPosition, cleanupListeners]
+    [onEnd, handlePointerMove, setDragPosition, cleanupListeners],
   );
 
   const handlePointerCancel = useCallback(() => {
@@ -97,7 +107,7 @@ export function useDrag(options: UseDragOptions = {}) {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       // 제스처 충돌 방지
-      (e.currentTarget as HTMLElement).style.touchAction = "none";
+      (e.currentTarget as HTMLElement).style.touchAction = 'none';
       // 텍스트 선택 방지
       e.preventDefault();
 
@@ -109,17 +119,17 @@ export function useDrag(options: UseDragOptions = {}) {
 
       onStart?.(e, { start: startRef.current });
 
-      window.addEventListener("pointerup", handlePointerUp);
-      window.addEventListener("pointercancel", handlePointerCancel);
-      window.addEventListener("pointermove", handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
+      window.addEventListener('pointercancel', handlePointerCancel);
+      window.addEventListener('pointermove', handlePointerMove);
     },
-    [onStart, handlePointerUp, handlePointerMove, handlePointerCancel]
+    [onStart, handlePointerUp, handlePointerMove, handlePointerCancel],
   );
 
   // 드래그 가능한 요소에 바인딩할 핸들러
   const bind = {
     onPointerDown: handlePointerDown,
-    role: "button" as const,
+    role: 'button' as const,
     tabIndex: 0 as const,
   };
 

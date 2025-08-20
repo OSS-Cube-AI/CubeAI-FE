@@ -23,7 +23,7 @@ export const ButtonVariants = cva(
       variant: 'primary',
       size: 'default',
     },
-  }
+  },
 );
 
 interface ButtonProps

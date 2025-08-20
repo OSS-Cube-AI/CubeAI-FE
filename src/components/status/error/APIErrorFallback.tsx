@@ -4,10 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { getAPIErrorInfo } from '@/utils/getApiErrorInfo';
 import ErrorPage from './ErrorPage';
 
-export const APIErrorFallback = ({
-  error,
-  resetErrorBoundary,
-}: FallbackProps) => {
+export const APIErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
   if (isAxiosError(error)) {
     const errorInfo = getAPIErrorInfo(error);
 

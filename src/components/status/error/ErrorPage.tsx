@@ -7,12 +7,7 @@ interface IErrorPageProps {
   onRetry: () => void;
 }
 
-const ErrorPage = ({
-  status,
-  message,
-  isUnknownError,
-  onRetry,
-}: IErrorPageProps) => {
+const ErrorPage = ({ status, message, isUnknownError, onRetry }: IErrorPageProps) => {
   const handleHomeClick = () => {
     onRetry();
     if (isUnknownError) {

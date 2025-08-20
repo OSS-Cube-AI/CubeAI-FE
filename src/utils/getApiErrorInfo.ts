@@ -10,8 +10,7 @@ const ERROR_CODE: ErrorCodeType = {
   // axios 에러
   ERR_NETWORK: {
     status: '네트워크 에러',
-    message:
-      '서버가 응답하지 않습니다. \n프로그램을 재시작하거나 관리자에게 연락하세요.',
+    message: '서버가 응답하지 않습니다. \n프로그램을 재시작하거나 관리자에게 연락하세요.',
   },
   ECONNABORTED: {
     status: '요청 시간 초과',
@@ -28,7 +27,7 @@ export const getAPIErrorInfo = (
     error: string;
     code: string;
     reason: string[];
-  }>
+  }>,
 ) => {
   const serverErrorCode = error?.response?.data?.code ?? '';
   const axiosErrorCode = error?.code ?? '';

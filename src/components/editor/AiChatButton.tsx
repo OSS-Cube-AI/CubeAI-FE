@@ -1,14 +1,13 @@
-
-import Chat from "@/components/editor/Chat";
-import AiChatIcon from "@/assets/icons/ai-chat.svg";
-import { useState } from "react";
+import Chat from '@/components/editor/Chat';
+import AiChatIcon from '@/assets/icons/ai-chat.svg';
+import { useState } from 'react';
 
 export default function AiChatButton() {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <>
       {isOpen && <Chat isOpen={isOpen} />}
-      <button 
+      <button
         onClick={() => {
           console.log('버튼 클릭됨!');
           setIsOpen(prev => !prev);

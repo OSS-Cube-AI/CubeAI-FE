@@ -19,7 +19,7 @@ export const InputVariants = cva(
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 );
 
 interface InputProps
@@ -40,19 +40,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className="flex flex-col gap-1">
         {label && (
           <label
-            className={`text-sm ${
-              variant === 'readOnly' ? 'text-gray-400' : 'text-gray-700'
-            }`}
+            className={`text-sm ${variant === 'readOnly' ? 'text-gray-400' : 'text-gray-700'}`}
           >
             {label}
           </label>
         )}
         <input
           ref={ref}
-          className={mergeClassNames(
-            InputVariants({ variant: displayInputType }),
-            className
-          )}
+          className={mergeClassNames(InputVariants({ variant: displayInputType }), className)}
           {...props}
         />
         <p className={`text-sm ${isError ? 'text-red-500' : 'text-gray-400'}`}>
@@ -60,5 +55,5 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </p>
       </div>
     );
-  }
+  },
 );

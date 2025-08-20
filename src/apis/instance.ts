@@ -26,19 +26,19 @@ const createConfiguredInstance = (baseURL: string): AxiosInstance => {
 
   // Interceptors 설정 (공통 로직)
   instance.interceptors.request.use(
-    (config) => {
+    config => {
       const accessToken = ''; // 실제 토큰을 가져오는 로직
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    error => Promise.reject(error),
   );
 
   instance.interceptors.response.use(
-    (response) => response,
-    async (error) => Promise.reject(error)
+    response => response,
+    async error => Promise.reject(error),
   );
 
   return instance;

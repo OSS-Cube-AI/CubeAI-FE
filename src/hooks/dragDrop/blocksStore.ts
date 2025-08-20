@@ -24,7 +24,7 @@ const listeners = new Set<Listener>();
 
 function notify() {
   const snapshot = [...blocks];
-  listeners.forEach((fn) => fn(snapshot));
+  listeners.forEach(fn => fn(snapshot));
 }
 
 export function getBlocks(): BlockItem[] {
@@ -37,7 +37,7 @@ export function addBlock(block: BlockItem) {
 }
 
 export function removeBlock(id: string) {
-  const idx = blocks.findIndex((b) => b.id === id);
+  const idx = blocks.findIndex(b => b.id === id);
   if (idx !== -1) {
     blocks.splice(idx, 1);
     notify();
@@ -61,4 +61,4 @@ export function subscribe(fn: Listener) {
   return () => {
     listeners.delete(fn);
   };
-} 
+}

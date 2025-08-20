@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { getInstance } from "@/apis/instance";
-import { ConversationResponse } from "../dto";
-import { queryKeys } from "@/apis/query-keys";
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { getInstance } from '@/apis/instance';
+import { ConversationResponse } from '../dto';
+import { queryKeys } from '@/apis/query-keys';
 
 const getConversations = async (id: string): Promise<ConversationResponse> => {
   try {
