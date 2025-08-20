@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDragCtx } from '@/hooks/dragDrop/DragContext';
 import {
-  addBlock,
-  getBlocks,
-  subscribe,
+  addBlockToStage,
+  getBlocksForStage,
+  subscribeToStage,
   type BlockItem,
-  removeBlock,
-  mutateBlocks,
+  removeBlockFromStage,
+  mutateBlocksForStage,
 } from '@/hooks/dragDrop/blocksStore';
 import InitBg from '@/assets/block/init.svg';
+import { convertByPost } from '@/apis/blocksConvert';
+import { blocksToParams } from '@/hooks/dragDrop/blocksToParams';
+import { useConvertResultStore } from '@/hooks/useConvertResultStore';
+import { useUserStore } from '@/stores/useUserStore';
+import type { editorStep } from '@/types/editor';
 
 // 좌표 계산 유틸리티 함수
 function getAccurateCoordinates(
@@ -127,19 +132,57 @@ function reflowChain(blocksDraft: BlockItem[]) {
   }
 }
 
-export default function Workspace() {
+interface WorkspaceProps {
+  editorStep: editorStep;
+}
+
+export default function Workspace({ editorStep }: WorkspaceProps) {
   const { dragging, setDragging } = useDragCtx();
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const [blocks, setBlocks] = useState<BlockItem[]>(() => getBlocks());
+  const [blocks, setBlocks] = useState<BlockItem[]>(() => getBlocksForStage(editorStep));
+  const debounceRef = useRef<number | null>(null);
+  const { setCode, setLoading, setError } = useConvertResultStore();
+  const userId = useUserStore(state => state.userId);
 
   useEffect(() => {
-    const unsub = subscribe(setBlocks);
+    // 현재 stage의 블록들로 초기화
+    setBlocks(getBlocksForStage(editorStep));
+
+    // 현재 stage의 블록 변경사항 구독
+    const unsub = subscribeToStage((stage, stageBlocks) => {
+      if (stage === editorStep) {
+        setBlocks([...stageBlocks]);
+      }
+    });
+
     return () => unsub();
-  }, []);
+  }, [editorStep]);
+
+  // 블록 변경 시마다 /convert 호출 (init/end 제외한 파라미터만 전송)
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(async () => {
+      try {
+        const effective = blocks.filter(b => b.type !== 'init_fixed' && b.type !== 'end');
+        const params = blocksToParams(effective);
+        setLoading(true);
+        setError(null);
+        const code = await convertByPost(editorStep, params, userId || 'anonymous');
+        setCode(typeof code === 'string' ? code : '');
+      } catch (e: any) {
+        setError(e?.message ?? 'convert failed');
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [blocks, userId, editorStep]);
 
   // 최초 고정 블록 시드(존재하지 않을 때만 추가)
   useEffect(() => {
-    const current = getBlocks();
+    const current = getBlocksForStage(editorStep);
     const hasInit = current.some(b => b.type === 'init_fixed');
     if (!hasInit) {
       // Editor.tsx에서의 Workspace 컴포넌트의 실제 width 계산
@@ -154,7 +197,7 @@ export default function Workspace() {
       const centerX = (workspaceWidth - blockWidth) / 2; // Workspace 중앙
       const centerY = 100; // 상단에서 적당한 거리
 
-      addBlock({
+      addBlockToStage(editorStep, {
         id: crypto.randomUUID(),
         type: 'init_fixed',
         x: centerX,
@@ -167,7 +210,7 @@ export default function Workspace() {
         deletable: false,
       });
     }
-  }, []);
+  }, [editorStep]);
 
   // 그리드 렌더링 함수 제거
   const renderGrid = () => null;
@@ -247,11 +290,11 @@ export default function Workspace() {
       deletable: true,
     };
 
-    // 블록 추가
-    addBlock(block);
+    // 현재 stage에 블록 추가
+    addBlockToStage(editorStep, block);
 
     // 체인 재정렬: 항상 'end'가 마지막이 되도록, 중간은 붙어서 쌓이도록
-    mutateBlocks(draft => {
+    mutateBlocksForStage(editorStep, draft => {
       reflowChain(draft);
     });
 
@@ -266,8 +309,8 @@ export default function Workspace() {
   }, [dragging]);
 
   const handleRemoveBlock = (id: string) => {
-    removeBlock(id);
-    mutateBlocks(draft => {
+    removeBlockFromStage(editorStep, id);
+    mutateBlocksForStage(editorStep, draft => {
       reflowChain(draft);
     });
   };
@@ -280,8 +323,7 @@ export default function Workspace() {
     <div ref={surfaceRef} className="relative flex-1 bg-white" onPointerUp={handlePointerUp}>
       {renderGrid()}
       {blocks.map(b => (
-        // 이거 z-index 너무 높으면 모달창을 뚫어버려서 낮춤
-        <div key={b.id} className="absolute z-[30]" style={{ left: b.x, top: b.y }}>
+        <div key={b.id} className="absolute z-[99]" style={{ left: b.x, top: b.y }}>
           <div className="flex w-[336px] my-2 text-white text-xl select-none">
             {b.color && (
               <img
