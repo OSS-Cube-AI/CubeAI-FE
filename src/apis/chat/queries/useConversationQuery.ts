@@ -21,6 +21,9 @@ export const useGetConversations = (id: string | null) => {
   return useQuery({
     queryKey: [queryKeys.conversation(id)],
     queryFn: () => getConversations(id as string),
+    staleTime: 1000 * 60 * 5, // 5분 동안 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     enabled: !!id,
   });
 };

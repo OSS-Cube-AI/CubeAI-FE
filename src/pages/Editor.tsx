@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTab } from '@/hooks/useTab';
 import Workspace from '@/components/layout/dragDrop/workspace';
 import NodePalette from '@/hooks/dragDrop/NodePalette';
@@ -6,6 +6,7 @@ import { DragProvider } from '@/hooks/dragDrop/DragContext';
 import DragPreview from '@/hooks/dragDrop/DragPreview';
 import Header from '@/components/layout/Header';
 
+import { useLogStore } from '@/stores/useLogStore';
 import SSEComponent from '@/components/common/SSEComponent';
 
 import AiChatButton from '@/components/editor/AiChatButton';
@@ -13,7 +14,10 @@ import Code from '@/components/editor/rightTab/Code';
 import Data from '@/components/editor/rightTab/Data';
 import Training from '@/components/editor/rightTab/Training';
 
-import { SampleDto } from '@/apis/sidebar/dto/dataInfo';
+import CurrentStepInfo from '@/components/editor/CurrentStepInfo';
+import { useUserStore } from '@/stores/useUserStore';
+import WelcomeDialog from '@/components/editor/dialog/WelcomeDialog';
+
 import type { editorStep } from '@/types/editor';
 
 const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL ?? 'http://211.188.56.255:9022';
@@ -34,7 +38,22 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
-  const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
+  const [isIdInitialized, setIsIdInitialized] = useState(false);
+  const [isIdModalOpen, setIsIdModalOpen] = useState(false);
+  const addLog = useLogStore(state => state.addLog);
+  const clearLogs = useLogStore(state => state.clearLogs);
+  const userId = useUserStore(state => state.userId);
+  const setUserId = useUserStore(state => state.setUserId);
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('demo-user-id');
+    if (storedUserId) {
+      setUserId(storedUserId);
+      setIsIdModalOpen(false);
+    } else {
+      setIsIdModalOpen(true);
+    }
+  }, [userId, setUserId]);
 
   const {
     TabsList: LeftTabList,
@@ -54,7 +73,7 @@ export default function EditorPage() {
   } = useTab<'코드' | '데이터' | '학습'>('코드', 'activeTab-right');
 
   const handleNewLog = (newLog: string) => {
-    setTrainingLogs(prevLogs => [...prevLogs, newLog]);
+    addLog(editorStep, newLog);
   };
 
   const currentStepIndex = stepOrder.indexOf(editorStep);
@@ -62,21 +81,33 @@ export default function EditorPage() {
   // 다음 단계로 진행하는 함수 (테스트용)
   const handleCompleteAndNextStep = () => {
     if (currentStepIndex < stepOrder.length - 1) {
-      setEditorStep(stepOrder[currentStepIndex + 1]);
+      const nextStep = stepOrder[currentStepIndex + 1];
+      clearLogs(nextStep);
+      setEditorStep(nextStep);
     }
   };
 
   const handleBackStep = () => {
     if (currentStepIndex > 0) {
-      setEditorStep(stepOrder[currentStepIndex - 1]);
+      const prevStep = stepOrder[currentStepIndex - 1];
+      setEditorStep(prevStep);
     }
+  };
+
+  const handleOpenIdModal = () => {
+    setIsIdModalOpen(true);
+  };
+
+  const handleCloseIdModal = () => {
+    setIsIdModalOpen(false);
   };
 
   return (
     <>
+      {isIdModalOpen && <WelcomeDialog isOpen={isIdModalOpen} onClose={handleCloseIdModal} />}
       <DragProvider>
         <div className="flex flex-col h-screen">
-          <Header />
+          <Header onOpenIdModal={handleOpenIdModal} />
 
           {/* ───── 상단 탭 바 ───── */}
           <section className="flex justify-between items-end min-h-[105px] bg-[#EEF6FF] border-b-[2px] border-[#C3CCD9]">
@@ -99,27 +130,13 @@ export default function EditorPage() {
               </LeftTabList>
             </div>
 
-            <div className="flex flex-col flex-1 items-center justify-center">
-              <p className="text-center mb-2">
-                현재 단계: <strong>{editorStep}</strong>
-              </p>
-              <div className="flex gap-10">
-                <button
-                  onClick={handleBackStep}
-                  disabled={currentStepIndex === 0}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-                >
-                  이전 단계로
-                </button>
-                <button
-                  onClick={handleCompleteAndNextStep}
-                  disabled={currentStepIndex === stepOrder.length - 1}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-                >
-                  다음 단계로
-                </button>
-              </div>
-            </div>
+            <CurrentStepInfo
+              editorStep={editorStep}
+              currentStepIndex={currentStepIndex}
+              stepOrder={stepOrder}
+              handleBackStep={handleBackStep}
+              handleCompleteAndNextStep={handleCompleteAndNextStep}
+            />
 
             {/* 오른쪽 탭 */}
             <div className="w-100 font-bold text-2xl text-center">
@@ -165,10 +182,10 @@ export default function EditorPage() {
                   <Code codeString={"import python\n\nprint('Hello, World!')"} />
                 </RightTabContent>
                 <RightTabContent value="데이터">
-                  <Data data={mockApiResponse} type="sample" />
+                  <Data />
                 </RightTabContent>
                 <RightTabContent value="학습">
-                  <Training logs={trainingLogs} />
+                  <Training currentStage={editorStep} />
                 </RightTabContent>
               </RightTabsContainer>
             </aside>
@@ -180,15 +197,10 @@ export default function EditorPage() {
       </DragProvider>
       <AiChatButton />
       {/* SSEComponent를 렌더링하여 로그 스트리밍을 시작합니다. */}
-      <SSEComponent url={`${AI_BACKEND_URL}/logs/stream?stage=train`} onMessage={handleNewLog} />
+      <SSEComponent
+        url={`${AI_BACKEND_URL}/logs/stream?stage=${editorStep}`}
+        onMessage={handleNewLog}
+      />
     </>
   );
 }
-
-const mockApiResponse: SampleDto = {
-  columns: ['label', 'pixel0', 'pixel1'],
-  sample: [
-    [5, 0, 0],
-    [0, 0, 0],
-  ],
-};
