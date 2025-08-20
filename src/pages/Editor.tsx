@@ -19,8 +19,9 @@ import { useUserStore } from '@/stores/useUserStore';
 import WelcomeDialog from '@/components/editor/dialog/WelcomeDialog';
 
 import type { editorStep } from '@/types/editor';
-
-const AI_BACKEND_URL = import.meta.env.VITE_AI_BACKEND_URL ?? 'http://211.188.56.255:9022';
+import { useStoreConvertQuery } from '@/apis/blocks/queries/useStoreConvert';
+import { AI_BACKEND_URL } from '@/constants/api';
+import { getUserId } from '@/utils/userId';
 
 const leftTabsConfig: {
   value: '데이터 전처리' | '모델 설계' | '학습하기' | '평가하기';
@@ -38,6 +39,10 @@ const stepOrder: editorStep[] = ['pre', 'model', 'train', 'eval'];
 
 export default function EditorPage() {
   const [editorStep, setEditorStep] = useState<editorStep>('pre');
+  const [trainingLogs, setTrainingLogs] = useState<string[]>([]);
+  const { data: convertedCode = '', isPending: isConverting } = useStoreConvertQuery(editorStep, {
+    enabled: true,
+  });
   const [isIdInitialized, setIsIdInitialized] = useState(false);
   const [isIdModalOpen, setIsIdModalOpen] = useState(false);
   const addLog = useLogStore(state => state.addLog);
@@ -178,8 +183,8 @@ export default function EditorPage() {
             <aside className="flex w-100 h-full font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
               <RightTabsContainer>
                 <RightTabContent value="코드">
-                  {/* 코드 응답값 여기 codeString 넣어주면 됨 */}
-                  <Code codeString={"import python\n\nprint('Hello, World!')"} />
+                  {/* 변환 결과 표시 */}
+                  <Code codeString={isConverting ? '# Generating…' : convertedCode} />
                 </RightTabContent>
                 <RightTabContent value="데이터">
                   <Data />

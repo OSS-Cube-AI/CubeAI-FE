@@ -9,6 +9,9 @@ import {
   mutateBlocks,
 } from '@/hooks/dragDrop/blocksStore';
 import InitBg from '@/assets/block/init.svg';
+import { convertByPost } from '@/apis/blocksConvert';
+import { blocksToParams } from '@/hooks/dragDrop/blocksToParams';
+import { useConvertResultStore } from '@/hooks/useConvertResultStore';
 
 // 좌표 계산 유틸리티 함수
 function getAccurateCoordinates(
@@ -131,11 +134,35 @@ export default function Workspace() {
   const { dragging, setDragging } = useDragCtx();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [blocks, setBlocks] = useState<BlockItem[]>(() => getBlocks());
+  const debounceRef = useRef<number | null>(null);
+  const { setCode, setLoading, setError } = useConvertResultStore();
 
   useEffect(() => {
     const unsub = subscribe(setBlocks);
     return () => unsub();
   }, []);
+
+  // 블록 변경 시마다 /convert 호출 (init/end 제외한 파라미터만 전송)
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(async () => {
+      try {
+        const effective = blocks.filter(b => b.type !== 'init_fixed' && b.type !== 'end');
+        const params = blocksToParams(effective);
+        setLoading(true);
+        setError(null);
+        const code = await convertByPost('all', params);
+        setCode(typeof code === 'string' ? code : '');
+      } catch (e: any) {
+        setError(e?.message ?? 'convert failed');
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [blocks]);
 
   // 최초 고정 블록 시드(존재하지 않을 때만 추가)
   useEffect(() => {

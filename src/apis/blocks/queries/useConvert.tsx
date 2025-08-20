@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getInstance } from '@/apis/instance';
-
-export type Stage = 'pre' | 'model' | 'train' | 'eval' | 'all';
+import { convertByPost, type Stage } from '@/apis/blocksConvert';
 
 export type ConvertQueryArgs = {
   stage: Stage;
@@ -9,30 +7,8 @@ export type ConvertQueryArgs = {
   enabled?: boolean;
 };
 
-function buildGetParams(params: Record<string, unknown> = {}) {
-  const out: Record<string, string | number | string[]> = {};
-  Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null) return;
-    if (Array.isArray(value)) {
-      out[`${key}[]`] = value.map(v => String(v));
-      return;
-    }
-    if (typeof value === 'boolean') {
-      if (value) out[key] = 'on';
-      return;
-    }
-    out[key] = typeof value === 'number' ? value : String(value);
-  });
-  return out;
-}
-
 async function fetchConvert(stage: Stage, params?: Record<string, unknown>): Promise<string> {
-  const instance = getInstance('AI');
-  const res = await instance.get('/convert', {
-    params: { stage, ...buildGetParams(params ?? {}) },
-    responseType: 'text',
-  });
-  return typeof res.data === 'string' ? res.data : '';
+  return await convertByPost(stage, params ?? {});
 }
 
 export function useConvertQuery({ stage, params, enabled = true }: ConvertQueryArgs) {

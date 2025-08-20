@@ -1,10 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
-import { AI_BACKEND_URL } from '@/constants/api';
 
 export type ServerType = 'MAIN' | 'CHAT' | 'AI';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const CHAT_BACKEND_URL = import.meta.env.VITE_CHAT_BACKEND_URL;
+const AI_BACKEND_URL = 'http://211.188.56.255:9022';
 
 const BASE_URLS: Record<ServerType, string> = {
   MAIN: BACKEND_URL,
@@ -20,7 +20,7 @@ const createConfiguredInstance = (baseURL: string): AxiosInstance => {
     baseURL,
     responseType: 'json',
     timeout: 30000,
-    withCredentials: true,
+    withCredentials: false,
   });
 
   // Interceptors 설정 (공통 로직)

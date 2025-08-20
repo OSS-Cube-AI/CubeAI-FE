@@ -1,15 +1,15 @@
 import { useMutation } from '@tanstack/react-query';
-import { postConvert, type Stage, type ConvertFields } from '@/apis/blocks/DTO/blockdata';
+import { convertByPost, type Stage } from '@/apis/blocksConvert';
 
 export type ConvertArgs = {
   stage: Stage;
-  fields: ConvertFields;
+  fields: Record<string, unknown>;
 };
 
 export function useConvertMutation() {
   return useMutation({
     mutationFn: async ({ stage, fields }: ConvertArgs) => {
-      return await postConvert({ stage, fields });
+      return await convertByPost(stage, fields);
     },
   });
 }
