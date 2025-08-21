@@ -1,19 +1,13 @@
 {
+  "functions": {
+    "api/[[...path]].ts": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "upgrade-insecure-requests"
-        }
-      ]
     }
   ]
 }
