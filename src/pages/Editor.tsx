@@ -79,7 +79,6 @@ export default function EditorPage() {
     TabTrigger: LeftTabTrigger,
     TabsContainer: LeftTabsContainer,
     TabContent: LeftTabContent,
-    activeTab: leftActiveTab,
     setActiveTab: setLeftActiveTab,
   } = useTab<'데이터 전처리' | '모델 설계' | '학습하기' | '평가하기'>(
     '데이터 전처리',
