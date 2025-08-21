@@ -30,10 +30,15 @@ export function useStoreConvertQuery(stage: editorStep, options?: { enabled?: bo
 
   const params = useMemo(() => blocksToParams(filtered), [filtered]);
 
+  // userId가 있을 때만 convert query 실행
+  const isEnabled = options?.enabled ?? true;
+  const hasUserId = !!userId;
+  const shouldExecute = isEnabled && hasUserId;
+
   return useConvertQuery({
     stage,
     params,
-    userId: userId || 'anonymous',
-    enabled: options?.enabled ?? true,
+    userId: userId || '',
+    enabled: shouldExecute,
   });
 }

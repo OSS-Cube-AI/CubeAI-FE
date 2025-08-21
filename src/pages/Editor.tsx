@@ -200,11 +200,13 @@ export default function EditorPage() {
         </div>
       </DragProvider>
       <AiChatButton />
-      {/* SSEComponent를 렌더링하여 로그 스트리밍을 시작합니다. */}
-      <SSEComponent
-        url={`${AI_BACKEND_URL}/logs/stream?stage=${editorStep}&user_id=${encodeURIComponent(userId || 'anonymous')}`}
-        onMessage={handleNewLog}
-      />
+      {/* userId가 있을 때만 SSEComponent 실행 */}
+      {userId && (
+        <SSEComponent
+          url={`${AI_BACKEND_URL}/logs/stream?stage=${editorStep}&user_id=${encodeURIComponent(userId)}`}
+          onMessage={handleNewLog}
+        />
+      )}
     </>
   );
 }
