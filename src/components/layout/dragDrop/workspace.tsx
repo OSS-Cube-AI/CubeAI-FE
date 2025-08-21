@@ -168,7 +168,7 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(async () => {
       try {
-        const effective = blocks.filter(b => b.type !== 'init_fixed' && b.type !== 'end');
+        const effective = blocks.filter(b => b.type !== 'init_fixed');
         const params = blocksToParams(effective);
         setLoading(true);
         setError(null);

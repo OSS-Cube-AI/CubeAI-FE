@@ -70,6 +70,12 @@ export function blocksToParams(blocks: BlockItem[]): Record<string, unknown> {
   const params: Record<string, unknown> = {};
 
   for (const b of blocks) {
+    // end 블록은 존재 여부만 서버에 전달
+    if (b.type === 'end') {
+      params.end = true; // 폼데이터에 'on'으로 직렬화됨
+      continue;
+    }
+
     const key = LABEL_TO_PARAM[b.label];
     if (!key) continue; // 매핑 없는 라벨은 건너뜀
 
