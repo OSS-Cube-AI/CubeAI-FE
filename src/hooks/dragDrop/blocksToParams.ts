@@ -4,7 +4,7 @@ import type { BlockItem } from './blocksStore';
 const LABEL_TO_PARAM: Record<string, string> = {
   // pre
   데이터셋: 'dataset',
-  '테스트 여부': 'is_test',
+  '테스트 데이터셋 사용 여부': 'is_test',
   '테스트 데이터셋': 'testdataset',
   '테스트 비율': 'a',
   '결측치 제거': 'drop_na',
@@ -78,6 +78,11 @@ export function blocksToParams(blocks: BlockItem[]): Record<string, unknown> {
 
     const key = LABEL_TO_PARAM[b.label];
     if (!key) continue; // 매핑 없는 라벨은 건너뜀
+
+    // 데이터셋 블록 존재 여부 표시 (dataset=on 용도)
+    if (key === 'dataset') {
+      params.dataset_present = true;
+    }
 
     // 다중 선택 값 (선택된 값만)
     if (b.isMultiSelect && b.selectedOptions && b.selectedOptions.length > 0) {

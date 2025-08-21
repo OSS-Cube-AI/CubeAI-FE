@@ -65,6 +65,12 @@ export async function convertByPost(stage: Stage, fields: Record<string, unknown
     fd.append(key, 'on');
   }
 
+  // dataset 블록 존재 시 dataset=on 추가
+  if (fields && (fields as any).dataset_present === true) {
+    const key = `dataset` as string;
+    fd.append(key, 'on');
+  }
+
   const api = getFormdataInstance('AI');
   const res = await api.post('/convert', fd, { responseType: 'text' });
   return res.data as string;
