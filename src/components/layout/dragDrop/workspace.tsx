@@ -151,7 +151,14 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
     // 현재 stage의 블록 변경사항 구독
     const unsub = subscribeToStage((stage, stageBlocks) => {
       if (stage === editorStep) {
+        // 현재 스크롤 위치 보존
+        const el = surfaceRef.current;
+        const prevTop = el?.scrollTop ?? 0;
         setBlocks([...stageBlocks]);
+        // 다음 프레임에 스크롤 복구
+        requestAnimationFrame(() => {
+          if (el) el.scrollTop = prevTop;
+        });
       }
     });
 
@@ -225,6 +232,10 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
 
     // 정확한 좌표 계산 (스크롤, transform 등 모든 요소 고려)
     const { x, y } = getAccurateCoordinates(clientX, clientY, surfaceRef.current);
+
+    // 현재 스크롤 위치 저장
+    const el = surfaceRef.current;
+    const prevTop = el.scrollTop;
 
     // 블록 크기 정의
     const blockWidth = 336; // 블록 너비
@@ -303,6 +314,11 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
       reflowChain(draft);
     });
 
+    // 다음 프레임에 스크롤 복구
+    requestAnimationFrame(() => {
+      if (el) el.scrollTop = prevTop;
+    });
+
     setDragging(null);
   };
 
@@ -314,9 +330,16 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
   }, [dragging]);
 
   const handleRemoveBlock = (id: string) => {
+    const el = surfaceRef.current;
+    const prevTop = el?.scrollTop ?? 0;
+
     removeBlockFromStage(editorStep, id);
     mutateBlocksForStage(editorStep, draft => {
       reflowChain(draft);
+    });
+
+    requestAnimationFrame(() => {
+      if (el) el.scrollTop = prevTop;
     });
   };
 
@@ -325,7 +348,11 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
   };
 
   return (
-    <div ref={surfaceRef} className="relative flex-1 bg-white" onPointerUp={handlePointerUp}>
+    <div
+      ref={surfaceRef}
+      className="relative flex-1 min-h-0 h-[77vh] bg-white overflow-y-auto"
+      onPointerUp={handlePointerUp}
+    >
       {renderGrid()}
       {blocks.map(b => (
         <div key={b.id} className="absolute z-[99]" style={{ left: b.x, top: b.y }}>
