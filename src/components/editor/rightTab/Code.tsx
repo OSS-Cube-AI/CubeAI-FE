@@ -6,7 +6,6 @@ import { AI_BACKEND_URL } from '@/constants/api';
 import Toast from '@/components/common/Toast';
 import { hasEndBlock } from '@/hooks/dragDrop/blocksStore';
 import FinalResultDialog from '@/components/editor/dialog/FinalResultDialog';
-import { useResultStatus } from '@/apis/sidebar/quries/useResultQuery';
 
 import CodeRunIcon from '@/assets/icons/code-run.svg';
 import CodeCopyIcon from '@/assets/icons/code-copy.svg';
@@ -24,9 +23,6 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
   const [toastType, setToastType] = useState<'success' | 'info' | 'warning'>('success');
   const [isRunning, setIsRunning] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
-
-  // 평가 결과 준비 상태 폴링 훅 (필요 시 수동 호출로 전환 가능)
-  const { data: resultStatus } = useResultStatus({ user_id: userId });
 
   const handleCopy = async () => {
     try {
