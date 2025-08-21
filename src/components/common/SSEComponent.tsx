@@ -22,8 +22,27 @@ export default function SSEComponent({
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
-  const maxReconnectAttempts = 5;
-  const baseReconnectDelay = 1000; // 1초
+  const maxReconnectAttempts = 15; // Vercel 환경에서는 더 많은 재연결 시도
+  const baseReconnectDelay = 300; // 더 빠른 재연결
+
+  // 메시지 배치 버퍼
+  const batchRef = useRef<string[]>([]);
+  const flushTimerRef = useRef<number | null>(null);
+
+  const flushBatch = useCallback(() => {
+    if (batchRef.current.length === 0) return;
+    const toFlush = batchRef.current.splice(0, batchRef.current.length);
+    // 한 번에 합쳐서 onMessage 호출 (줄 단위)
+    toFlush.forEach(msg => onMessage(msg));
+  }, [onMessage]);
+
+  const scheduleFlush = useCallback(() => {
+    if (flushTimerRef.current != null) return;
+    flushTimerRef.current = window.setTimeout(() => {
+      flushTimerRef.current = null;
+      flushBatch();
+    }, 150);
+  }, [flushBatch]);
 
   // 연결 정리 함수
   const cleanup = useCallback(() => {
@@ -39,6 +58,11 @@ export default function SSEComponent({
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
+    if (flushTimerRef.current != null) {
+      window.clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
+    batchRef.current = [];
     setIsConnected(false);
   }, []);
 
@@ -52,7 +76,8 @@ export default function SSEComponent({
       return;
     }
 
-    const delay = baseReconnectDelay * Math.pow(2, reconnectAttempts); // 지수 백오프
+    // Vercel 환경에서는 선형 증가 사용 (지수 백오프 대신)
+    const delay = baseReconnectDelay + reconnectAttempts * 200;
     console.log(
       `SSE: ${delay}ms 후 재연결 시도... (${reconnectAttempts + 1}/${maxReconnectAttempts})`,
     );
@@ -109,9 +134,10 @@ export default function SSEComponent({
               for (const line of lines) {
                 if (line.startsWith('data:')) {
                   const data = line.slice(5).trimStart();
-                  onMessage(data);
+                  batchRef.current.push(data);
                 }
               }
+              scheduleFlush();
             }
           }
         } catch (err) {
@@ -144,7 +170,8 @@ export default function SSEComponent({
 
     // 'message' 이벤트 리스너 등록
     eventSource.onmessage = event => {
-      onMessage(event.data);
+      batchRef.current.push(event.data);
+      scheduleFlush();
     };
 
     eventSource.onerror = error => {
@@ -165,7 +192,7 @@ export default function SSEComponent({
     return () => {
       cleanup();
     };
-  }, [url, onMessage, onError, method, body, headers, cleanup, reconnect]);
+  }, [url, onMessage, onError, method, body, headers, cleanup, reconnect, scheduleFlush]);
 
   // 연결 상태 표시 (디버깅용)
   useEffect(() => {

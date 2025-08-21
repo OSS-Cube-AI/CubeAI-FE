@@ -23,10 +23,7 @@ export function useStoreConvertQuery(stage: editorStep, options?: { enabled?: bo
     return () => unsub();
   }, [stage]);
 
-  const filtered = useMemo(
-    () => blocks.filter(b => b.type !== 'init_fixed' && b.type !== 'end'),
-    [blocks],
-  );
+  const filtered = useMemo(() => blocks.filter(b => b.type !== 'init_fixed'), [blocks]);
 
   const params = useMemo(() => blocksToParams(filtered), [filtered]);
 

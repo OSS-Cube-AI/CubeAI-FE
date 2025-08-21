@@ -5,6 +5,8 @@ import { useUserStore } from '@/stores/useUserStore';
 import { AI_BACKEND_URL } from '@/constants/api';
 import Toast from '@/components/common/Toast';
 import { hasEndBlock } from '@/hooks/dragDrop/blocksStore';
+import FinalResultDialog from '@/components/editor/dialog/FinalResultDialog';
+import { useResultStatus } from '@/apis/sidebar/quries/useResultQuery';
 
 import CodeRunIcon from '@/assets/icons/code-run.svg';
 import CodeCopyIcon from '@/assets/icons/code-copy.svg';
@@ -21,6 +23,10 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'info' | 'warning'>('success');
   const [isRunning, setIsRunning] = useState(false);
+  const [showFinal, setShowFinal] = useState(false);
+
+  // 평가 결과 준비 상태 폴링 훅 (필요 시 수동 호출로 전환 가능)
+  const { data: resultStatus } = useResultStatus({ user_id: userId });
 
   const handleCopy = async () => {
     try {
@@ -124,6 +130,32 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
         setToastType('info');
         setShowToast(true);
 
+        // 평가 단계라면 결과 준비를 폴링 후 자동으로 모달 표시
+        if (currentStage === 'eval') {
+          // 2초 간격으로 최대 60회(약 2분) 상태 확인
+          let attempts = 0;
+          const interval = window.setInterval(async () => {
+            attempts += 1;
+            try {
+              const res = await fetch(
+                `${AI_BACKEND_URL}/result/status?user_id=${encodeURIComponent(userId)}`,
+              );
+              if (res.ok) {
+                const data = await res.json();
+                if (data?.ready) {
+                  window.clearInterval(interval);
+                  setShowFinal(true);
+                }
+              }
+            } catch (e) {
+              // ignore
+            }
+            if (attempts >= 60) {
+              window.clearInterval(interval);
+            }
+          }, 2000);
+        }
+
         // 5초간 실행 중 상태 유지
         setTimeout(() => {
           setIsRunning(false);
@@ -139,13 +171,7 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
   };
 
   const CODE_BUTTONS = [
-    {
-      icon: CodeRunIcon,
-      alt: 'Run',
-      onclick: handleRun,
-      disabled: isRunning,
-      loading: isRunning,
-    },
+    { icon: CodeRunIcon, alt: 'Run', onclick: handleRun, disabled: isRunning, loading: isRunning },
     { icon: CodeCopyIcon, alt: 'Copy', onclick: handleCopy },
     { icon: CodeDownloadIcon, alt: 'Download', onclick: handleDownload },
   ];
@@ -193,6 +219,8 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
         duration={toastType === 'info' ? 5000 : 2000}
         type={toastType}
       />
+
+      {showFinal && <FinalResultDialog />}
     </>
   );
 }

@@ -59,6 +59,18 @@ export async function convertByPost(stage: Stage, fields: Record<string, unknown
   fd.append('stage', stage);
   Object.entries(fields ?? {}).forEach(([k, v]) => appendField(fd, k, v));
 
+  // end 블록이 포함되어 있다면 {stage}_end=on 키를 추가
+  if (fields && (fields as any).end === true) {
+    const key = `${stage}_end` as string;
+    fd.append(key, 'on');
+  }
+
+  // dataset 블록 존재 시 dataset=on 추가
+  if (fields && (fields as any).dataset_present === true) {
+    const key = `dataset` as string;
+    fd.append(key, 'on');
+  }
+
   const api = getFormdataInstance('AI');
   const res = await api.post('/convert', fd, { responseType: 'text' });
   return res.data as string;

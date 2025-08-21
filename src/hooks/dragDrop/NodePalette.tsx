@@ -24,10 +24,10 @@ const PREPROCESSING_NODES: {
     color: Green,
     isToggle: false,
     parameters: [],
-    isString: true,
+    isString: false,
     stringDefault: '',
   },
-  { label: '테스트 여부', type: 'pre', color: Green, isToggle: true, parameters: [] },
+  { label: '테스트 데이터셋 사용 여부', type: 'pre', color: Green, isToggle: true, parameters: [] },
   {
     label: '테스트 데이터셋',
     type: 'pre',
