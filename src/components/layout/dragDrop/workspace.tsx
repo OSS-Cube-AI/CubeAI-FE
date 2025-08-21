@@ -160,6 +160,11 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
 
   // 블록 변경 시마다 /convert 호출 (init/end 제외한 파라미터만 전송)
   useEffect(() => {
+    // userId가 없으면 convert 호출 금지
+    if (!userId) {
+      return;
+    }
+
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(async () => {
       try {
@@ -167,7 +172,7 @@ export default function Workspace({ editorStep }: WorkspaceProps) {
         const params = blocksToParams(effective);
         setLoading(true);
         setError(null);
-        const code = await convertByPost(editorStep, params, userId || 'anonymous');
+        const code = await convertByPost(editorStep, params, userId);
         setCode(typeof code === 'string' ? code : '');
       } catch (e: any) {
         setError(e?.message ?? 'convert failed');
