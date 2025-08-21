@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/[[...path]].ts": {
-      "runtime": "edge"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
