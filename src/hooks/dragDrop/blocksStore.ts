@@ -150,6 +150,11 @@ export function getBlockCountForStage(stage: editorStep): number {
   return stageBlocks[stage].length;
 }
 
+// end 블럭이 있는지 확인하는 함수
+export function hasEndBlock(stage: editorStep): boolean {
+  return stageBlocks[stage].some(block => block.type === 'end');
+}
+
 // 모든 stage의 블록 개수 조회
 export function getAllStageBlockCounts(): Record<editorStep, number> {
   return {

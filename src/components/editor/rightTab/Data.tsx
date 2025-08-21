@@ -27,45 +27,49 @@ export default function Data() {
   const { data: imagesData } = useDataInfo({ file, type: 'images', n: 9 });
 
   return (
-    <div className="p-2">
-      <select
-        value={file}
-        onChange={e => setFile(e.target.value)}
-        className="w-full p-2 border rounded mb-4"
-      >
-        {FILE_TYPE_LIST.map(f => (
-          <option key={f} value={f}>
-            {f}
-          </option>
-        ))}
-      </select>
+    <div className="h-[90vh] flex flex-col min-h-0">
+      <div className="p-2 shrink-0">
+        <select
+          value={file}
+          onChange={e => setFile(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+        >
+          {FILE_TYPE_LIST.map(f => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <Accordion type="multiple" defaultValue={['shape', 'images']} className="w-full">
-        <AccordionItem value="shape">
-          <AccordionTrigger>Data Shape</AccordionTrigger>
-          <AccordionContent>
-            <ShapeInfo data={shapeData as ShapeDto} />
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="sample">
-          <AccordionTrigger>Data Sample (10개)</AccordionTrigger>
-          <AccordionContent>
-            <SampleInfo data={sampleData as SampleDto} />
-          </AccordionContent>
-        </AccordionItem>
-        {/* <AccordionItem value="structure">
-          <AccordionTrigger>Data Structure</AccordionTrigger>
-          <AccordionContent>
-            <StructureInfo data={structureData as StructureDto} />
-          </AccordionContent>
-        </AccordionItem> */}
-        <AccordionItem value="images">
-          <AccordionTrigger>Image Sample (9개)</AccordionTrigger>
-          <AccordionContent>
-            <ImagesInfo data={imagesData as ImagesDto} />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <Accordion type="multiple" defaultValue={['shape', 'images']} className="w-full">
+          <AccordionItem value="shape">
+            <AccordionTrigger>Data Shape</AccordionTrigger>
+            <AccordionContent>
+              <ShapeInfo data={shapeData as ShapeDto} />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="sample">
+            <AccordionTrigger>Data Sample (10개)</AccordionTrigger>
+            <AccordionContent>
+              <SampleInfo data={sampleData as SampleDto} />
+            </AccordionContent>
+          </AccordionItem>
+          {/* <AccordionItem value="structure">
+            <AccordionTrigger>Data Structure</AccordionTrigger>
+            <AccordionContent>
+              <StructureInfo data={structureData as StructureDto} />
+            </AccordionContent>
+          </AccordionItem> */}
+          <AccordionItem value="images">
+            <AccordionTrigger>Image Sample (9개)</AccordionTrigger>
+            <AccordionContent>
+              <ImagesInfo data={imagesData as ImagesDto} />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
     </div>
   );
 }

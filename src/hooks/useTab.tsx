@@ -2,8 +2,20 @@ import { motion } from 'motion/react';
 import React, { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export function useTab<T>(defaultTab: T, layoutId: string = 'activeTab') {
+export function useTab<T>(
+  defaultTab: T,
+  layoutId: string = 'activeTab',
+  onTabChange?: (newTab: T) => void,
+) {
   const [activeTab, setActiveTab] = useState<T>(defaultTab);
+
+  // 외부에서 activeTab을 설정할 수 있는 함수
+  const setActiveTabExternal = (newTab: T) => {
+    setActiveTab(newTab);
+    if (onTabChange) {
+      onTabChange(newTab);
+    }
+  };
 
   function TabsList({ children }: { children: React.ReactNode }) {
     const childArray = React.Children.toArray(children);
@@ -55,11 +67,17 @@ export function useTab<T>(defaultTab: T, layoutId: string = 'activeTab') {
 
     const combinedStyle = disabled ? disabledStyle : isActive ? activeStyle : inactiveStyle;
 
+    const handleClick = () => {
+      if (!disabled) {
+        setActiveTab(value);
+        if (onTabChange) {
+          onTabChange(value);
+        }
+      }
+    };
+
     return (
-      <div
-        className={twMerge(baseStyle, radiusStyle, combinedStyle)}
-        onClick={() => !disabled && setActiveTab(value)}
-      >
+      <div className={twMerge(baseStyle, radiusStyle, combinedStyle)} onClick={handleClick}>
         <span className="inline-block px-4 py-2 text-[15px] font-medium whitespace-pre-line">
           {children}
         </span>
@@ -91,5 +109,7 @@ export function useTab<T>(defaultTab: T, layoutId: string = 'activeTab') {
     TabTrigger,
     TabsContainer,
     TabContent,
+    activeTab,
+    setActiveTab: setActiveTabExternal,
   };
 }

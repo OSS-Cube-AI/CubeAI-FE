@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useUserStore } from '@/stores/useUserStore';
 import { AI_BACKEND_URL } from '@/constants/api';
 import Toast from '@/components/common/Toast';
+import { hasEndBlock } from '@/hooks/dragDrop/blocksStore';
 
 import CodeRunIcon from '@/assets/icons/code-run.svg';
 import CodeCopyIcon from '@/assets/icons/code-copy.svg';
@@ -17,10 +18,15 @@ interface CodeProps {
 export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
   const userId = useUserStore(state => state.userId);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'info' | 'warning'>('success');
+  const [isRunning, setIsRunning] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(codeString);
+      setToastMessage('코드가 클립보드에 복사되었습니다!');
+      setToastType('success');
       setShowToast(true);
       console.log('코드가 클립보드에 복사되었습니다.');
     } catch (err) {
@@ -32,6 +38,8 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
+      setToastMessage('코드가 클립보드에 복사되었습니다! (fallback)');
+      setToastType('success');
       setShowToast(true);
       console.log('코드가 클립보드에 복사되었습니다. (fallback)');
     }
@@ -76,7 +84,25 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
       return;
     }
 
+    if (isRunning) {
+      // 이미 실행 중이면 5초간 실행 중 토스트 표시
+      setToastMessage('실행 중입니다...');
+      setToastType('info');
+      setShowToast(true);
+      return;
+    }
+
+    // end 블럭이 있는지 확인
+    if (!hasEndBlock(currentStage as any)) {
+      setToastMessage('실행 종료 블럭을 삽입해야 합니다!');
+      setToastType('warning');
+      setShowToast(true);
+      return;
+    }
+
     try {
+      setIsRunning(true);
+
       const formData = new FormData();
       formData.append('user_id', userId);
 
@@ -93,37 +119,67 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
       const result = await response.json();
       if (result.ok) {
         console.log(`실행 시작됨, PID: ${result.pid}`);
-        // TODO: 실행 상태를 UI에 표시 (로딩, 성공, 실패 등)
+        // 실행 성공 토스트 표시
+        setToastMessage('실행했습니다!');
+        setToastType('info');
+        setShowToast(true);
+
+        // 5초간 실행 중 상태 유지
+        setTimeout(() => {
+          setIsRunning(false);
+        }, 5000);
       } else {
         console.error('실행 실패:', result.error);
+        setIsRunning(false);
       }
     } catch (error) {
       console.error('코드 실행 중 오류:', error);
+      setIsRunning(false);
     }
   };
 
   const CODE_BUTTONS = [
-    { icon: CodeRunIcon, alt: 'Run', onclick: handleRun },
+    {
+      icon: CodeRunIcon,
+      alt: 'Run',
+      onclick: handleRun,
+      disabled: isRunning,
+      loading: isRunning,
+    },
     { icon: CodeCopyIcon, alt: 'Copy', onclick: handleCopy },
     { icon: CodeDownloadIcon, alt: 'Download', onclick: handleDownload },
   ];
 
   return (
     <>
-      <div className="w-full h-full">
-        <section className="w-full h-15 border-b-2px border-[#C3CCD9] flex items-center justify-start gap-5 pl-5">
+      <div className="w-full h-full flex flex-col">
+        <section className="w-full h-15 border-b-2px border-[#C3CCD9] flex items-center justify-start gap-5 pl-5 shrink-0">
           {CODE_BUTTONS.map(data => (
             <button
               key={data.alt}
               onClick={data.onclick}
-              className="p-2 rounded-2xl hover:bg-[#f0f0f0] flex justify-center items-center transition-colors duration-200"
-              title={data.alt}
+              disabled={data.disabled}
+              className={`p-2 rounded-2xl transition-all duration-200 flex justify-center items-center relative ${
+                data.disabled
+                  ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                  : 'hover:bg-[#f0f0f0] hover:scale-105 active:scale-95'
+              }`}
+              title={data.disabled ? '실행 중입니다...' : data.alt}
             >
-              <img src={data.icon} alt={data.alt} />
+              <img
+                src={data.icon}
+                alt={data.alt}
+                className={`${data.loading ? 'opacity-50' : ''}`}
+              />
+              {data.loading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
             </button>
           ))}
         </section>
-        <section className="w-full h-full text-[12px] bg-[#272a36] overflow-auto">
+        <section className="w-full flex-1 text-[12px] bg-[#272a36] overflow-auto min-h-0">
           <SyntaxHighlighter language="python" style={dracula}>
             {codeString}
           </SyntaxHighlighter>
@@ -131,10 +187,11 @@ export default function Code({ codeString, currentStage = 'pre' }: CodeProps) {
       </div>
 
       <Toast
-        message="코드가 클립보드에 복사되었습니다!"
+        message={toastMessage}
         isVisible={showToast}
         onClose={() => setShowToast(false)}
-        duration={2000}
+        duration={toastType === 'info' ? 5000 : 2000}
+        type={toastType}
       />
     </>
   );

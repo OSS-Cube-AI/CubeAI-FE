@@ -56,14 +56,35 @@ export default function EditorPage() {
     }
   }, [userId, setUserId]);
 
+  // 좌측 탭 변경 시 editorStep도 함께 변경
+  const handleLeftTabChange = (newTab: '데이터 전처리' | '모델 설계' | '학습하기' | '평가하기') => {
+    const tabToStageMap: Record<
+      '데이터 전처리' | '모델 설계' | '학습하기' | '평가하기',
+      editorStep
+    > = {
+      '데이터 전처리': 'pre',
+      '모델 설계': 'model',
+      학습하기: 'train',
+      평가하기: 'eval',
+    };
+    const newStage = tabToStageMap[newTab];
+    if (newStage && newStage !== editorStep) {
+      clearLogs(newStage);
+      setEditorStep(newStage);
+    }
+  };
+
   const {
     TabsList: LeftTabList,
     TabTrigger: LeftTabTrigger,
     TabsContainer: LeftTabsContainer,
     TabContent: LeftTabContent,
+    activeTab: leftActiveTab,
+    setActiveTab: setLeftActiveTab,
   } = useTab<'데이터 전처리' | '모델 설계' | '학습하기' | '평가하기'>(
     '데이터 전처리',
     'activeTab-left',
+    handleLeftTabChange,
   );
 
   const {
@@ -72,6 +93,20 @@ export default function EditorPage() {
     TabsContainer: RightTabsContainer,
     TabContent: RightTabContent,
   } = useTab<'코드' | '데이터' | '학습'>('코드', 'activeTab-right');
+
+  // editorStep이 변경될 때 좌측 탭도 자동으로 변경
+  useEffect(() => {
+    const stageToTabMap: Record<
+      editorStep,
+      '데이터 전처리' | '모델 설계' | '학습하기' | '평가하기'
+    > = {
+      pre: '데이터 전처리',
+      model: '모델 설계',
+      train: '학습하기',
+      eval: '평가하기',
+    };
+    setLeftActiveTab(stageToTabMap[editorStep]);
+  }, [editorStep, setLeftActiveTab]);
 
   const handleNewLog = (newLog: string) => {
     addLog(editorStep, newLog);
@@ -149,9 +184,9 @@ export default function EditorPage() {
             </div>
           </section>
 
-          <section className="flex justify-between flex-1">
+          <section className="flex justify-between flex-1 min-h-0">
             {/* 왼쪽 사이드바 */}
-            <aside className="flex w-100 border-r-[2px] border-[#C3CCD9] font-bold text-2xl text-center">
+            <aside className="flex w-100 border-r-[2px] border-[#C3CCD9] font-bold text-2xl text-center min-h-0">
               <LeftTabsContainer>
                 <LeftTabContent value="데이터 전처리">
                   {/* 드래그 가능한 노드 팔레트 */}
@@ -170,13 +205,13 @@ export default function EditorPage() {
             </aside>
 
             {/* 여기에 DND 요소 ㄱㄱ */}
-            <section className="flex-1 w-full">
+            <section className="flex-1 w-full min-h-0">
               {/* 중앙 캔버스 영역 (드롭 지점) */}
               <Workspace editorStep={editorStep} />
             </section>
 
             {/* 오른쪽 사이드바 */}
-            <aside className="flex w-100 h-full font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
+            <aside className="flex w-100 min-h-0 h-[77vh] font-bold text-2xl text-center border-l-[2px] border-[#C3CCD9]">
               <RightTabsContainer>
                 <RightTabContent value="코드">
                   {/* 변환 결과 표시 */}

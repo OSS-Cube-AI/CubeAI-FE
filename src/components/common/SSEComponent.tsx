@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface SSEComponentProps {
   url: string;
@@ -17,13 +17,16 @@ export default function SSEComponent({
   body,
   headers,
 }: SSEComponentProps) {
-  // `useRef`로 연결 인스턴스를 저장하고,
-  // 컴포넌트 라이프사이클 동안 유지하기
   const eventSourceRef = useRef<EventSource | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const maxReconnectAttempts = 5;
+  const baseReconnectDelay = 1000; // 1초
 
-  useEffect(() => {
-    // 정리: 기존 연결 종료
+  // 연결 정리 함수
+  const cleanup = useCallback(() => {
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
@@ -32,6 +35,37 @@ export default function SSEComponent({
       abortRef.current.abort();
       abortRef.current = null;
     }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    setIsConnected(false);
+  }, []);
+
+  // 재연결 함수
+  const reconnect = useCallback(() => {
+    if (reconnectAttempts >= maxReconnectAttempts) {
+      console.error('SSE: 최대 재연결 시도 횟수 초과');
+      if (onError) {
+        onError(new Error('최대 재연결 시도 횟수 초과'));
+      }
+      return;
+    }
+
+    const delay = baseReconnectDelay * Math.pow(2, reconnectAttempts); // 지수 백오프
+    console.log(
+      `SSE: ${delay}ms 후 재연결 시도... (${reconnectAttempts + 1}/${maxReconnectAttempts})`,
+    );
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      setReconnectAttempts(prev => prev + 1);
+      // useEffect가 다시 실행되어 연결 재시도
+    }, delay);
+  }, [reconnectAttempts, maxReconnectAttempts, onError]);
+
+  useEffect(() => {
+    // 정리: 기존 연결 종료
+    cleanup();
 
     // POST + FormData 요청인 경우: fetch 스트리밍으로 처리
     if (method === 'POST' && body) {
@@ -51,6 +85,9 @@ export default function SSEComponent({
           if (!res.ok || !res.body) {
             throw new Error(`SSE fetch failed: ${res.status}`);
           }
+
+          setIsConnected(true);
+          setReconnectAttempts(0);
 
           const reader = res.body.getReader();
           const decoder = new TextDecoder('utf-8');
@@ -79,7 +116,9 @@ export default function SSEComponent({
           }
         } catch (err) {
           console.error('SSE (fetch) Error:', err);
+          setIsConnected(false);
           if (onError) onError(err as Error);
+          reconnect();
         }
       })();
 
@@ -96,6 +135,13 @@ export default function SSEComponent({
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
+    // 연결 상태 관리
+    eventSource.onopen = () => {
+      console.log('SSE: 연결됨');
+      setIsConnected(true);
+      setReconnectAttempts(0);
+    };
+
     // 'message' 이벤트 리스너 등록
     eventSource.onmessage = event => {
       onMessage(event.data);
@@ -103,20 +149,28 @@ export default function SSEComponent({
 
     eventSource.onerror = error => {
       console.error('SSE Error:', error);
+      setIsConnected(false);
+
       if (onError) {
         onError(error);
       }
-      eventSource.close();
+
+      // 연결이 끊어진 경우 재연결 시도
+      if (eventSource.readyState === EventSource.CLOSED) {
+        reconnect();
+      }
     };
 
     // 컴포넌트 언마운트 시 연결 정리 (cleanup)
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
+      cleanup();
     };
-  }, [url, onMessage, onError, method, body, headers]); // props 변경 시 재연결
+  }, [url, onMessage, onError, method, body, headers, cleanup, reconnect]);
+
+  // 연결 상태 표시 (디버깅용)
+  useEffect(() => {
+    console.log(`SSE 연결 상태: ${isConnected ? '연결됨' : '연결 끊김'}`);
+  }, [isConnected]);
 
   return null;
 }

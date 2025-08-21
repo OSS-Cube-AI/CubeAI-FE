@@ -192,7 +192,7 @@ const TRAINING_NODES: {
     dropdownOptions: ['Adam', 'SGD', 'RMSprop'],
     dropdownDefault: 'Adam',
   },
-  { label: '학습률', type: 'train', color: Yellow, isToggle: false, parameters: [0.00001] },
+  { label: '학습률', type: 'train', color: Yellow, isToggle: false, parameters: [0.0001] },
   { label: '에폭 수', type: 'train', color: Yellow, isToggle: false, parameters: [10] },
   { label: '배치 크기', type: 'train', color: Yellow, isToggle: false, parameters: [64] },
   { label: '학습 조기 종료', type: 'train', color: Yellow, isToggle: false, parameters: [3] },
