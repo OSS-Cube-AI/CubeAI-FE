@@ -22,8 +22,8 @@ export default function SSEComponent({
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
-  const maxReconnectAttempts = 5;
-  const baseReconnectDelay = 1000; // 1초
+  const maxReconnectAttempts = 15; // Vercel 환경에서는 더 많은 재연결 시도
+  const baseReconnectDelay = 300; // 더 빠른 재연결
 
   // 연결 정리 함수
   const cleanup = useCallback(() => {
@@ -52,7 +52,8 @@ export default function SSEComponent({
       return;
     }
 
-    const delay = baseReconnectDelay * Math.pow(2, reconnectAttempts); // 지수 백오프
+    // Vercel 환경에서는 선형 증가 사용 (지수 백오프 대신)
+    const delay = baseReconnectDelay + reconnectAttempts * 200;
     console.log(
       `SSE: ${delay}ms 후 재연결 시도... (${reconnectAttempts + 1}/${maxReconnectAttempts})`,
     );
