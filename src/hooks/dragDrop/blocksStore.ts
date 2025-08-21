@@ -1,4 +1,6 @@
 import type { editorStep } from '@/types/editor';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type BlockItem = {
   id: string;
@@ -23,13 +25,24 @@ export type BlockItem = {
 type Listener = (blocks: BlockItem[]) => void;
 type StageListener = (stage: editorStep, blocks: BlockItem[]) => void;
 
-// 각 stage별로 별도의 블록 배열 관리
-const stageBlocks: Record<editorStep, BlockItem[]> = {
-  pre: [],
-  model: [],
-  train: [],
-  eval: [],
+type BlocksState = {
+  stageBlocks: Record<editorStep, BlockItem[]>;
 };
+
+// Zustand 기반 저장 (로컬 스토리지에 지속)
+const useBlocksState = create<BlocksState>()(
+  persist<BlocksState>(
+    () => ({
+      stageBlocks: {
+        pre: [] as BlockItem[],
+        model: [] as BlockItem[],
+        train: [] as BlockItem[],
+        eval: [] as BlockItem[],
+      },
+    }),
+    { name: 'blocks-stage-storage' },
+  ),
+);
 
 // 기존 호환성을 위한 전체 블록 배열 (모든 stage의 블록을 합친 것)
 const allBlocks: BlockItem[] = [];
@@ -41,10 +54,11 @@ const listeners = new Set<Listener>();
 const stageListeners = new Set<StageListener>();
 
 function notify() {
-  // 모든 stage의 블록을 합쳐서 전체 블록 배열 업데이트
+  // 모든 stage의 블록을 합쳐서 전체 블록 배열 업데이트 (Zustand 상태 기반)
+  const state = useBlocksState.getState();
   allBlocks.length = 0;
-  Object.values(stageBlocks).forEach(blocks => {
-    allBlocks.push(...blocks);
+  (Object.keys(state.stageBlocks) as editorStep[]).forEach(s => {
+    allBlocks.push(...state.stageBlocks[s]);
   });
 
   // 기존 리스너들에게 전체 블록 알림
@@ -53,39 +67,55 @@ function notify() {
 }
 
 function notifyStage(stage: editorStep) {
-  const snapshot = [...stageBlocks[stage]];
+  const state = useBlocksState.getState();
+  const snapshot = [...state.stageBlocks[stage]];
   stageListeners.forEach(fn => fn(stage, snapshot));
   notify(); // 전체 블록도 업데이트
 }
 
 // Stage별 블록 관리 함수들
 export function getBlocksForStage(stage: editorStep): BlockItem[] {
-  return [...stageBlocks[stage]];
+  const state = useBlocksState.getState();
+  return [...state.stageBlocks[stage]];
 }
 
 export function addBlockToStage(stage: editorStep, block: BlockItem) {
   const blockWithStage = { ...block, stage };
-  stageBlocks[stage].push(blockWithStage);
+  const state = useBlocksState.getState();
+  const next = [...state.stageBlocks[stage], blockWithStage];
+  useBlocksState.setState({
+    stageBlocks: { ...state.stageBlocks, [stage]: next },
+  });
   notifyStage(stage);
 }
 
 export function removeBlockFromStage(stage: editorStep, id: string) {
-  const idx = stageBlocks[stage].findIndex(b => b.id === id);
-  if (idx !== -1) {
-    stageBlocks[stage].splice(idx, 1);
-    notifyStage(stage);
-  }
+  const state = useBlocksState.getState();
+  const next = state.stageBlocks[stage].filter(b => b.id !== id);
+  useBlocksState.setState({
+    stageBlocks: { ...state.stageBlocks, [stage]: next },
+  });
+  notifyStage(stage);
 }
 
 export function clearBlocksForStage(stage: editorStep) {
-  if (stageBlocks[stage].length) {
-    stageBlocks[stage].splice(0, stageBlocks[stage].length);
+  const state = useBlocksState.getState();
+  if (state.stageBlocks[stage].length) {
+    useBlocksState.setState({
+      stageBlocks: { ...state.stageBlocks, [stage]: [] },
+    });
     notifyStage(stage);
   }
 }
 
 export function mutateBlocksForStage(stage: editorStep, mutator: (draft: BlockItem[]) => void) {
-  mutator(stageBlocks[stage]);
+  const state = useBlocksState.getState();
+  // 불변 업데이트: shallow copy 후 mutator 적용
+  const draft = state.stageBlocks[stage].map(b => ({ ...b }));
+  mutator(draft);
+  useBlocksState.setState({
+    stageBlocks: { ...state.stageBlocks, [stage]: draft },
+  });
   notifyStage(stage);
 }
 
@@ -98,7 +128,13 @@ export function subscribeToStage(fn: StageListener) {
 
 // 기존 호환성 함수들 (전체 블록 기준)
 export function getBlocks(): BlockItem[] {
-  return [...allBlocks];
+  // 최신 상태에서 조립
+  const state = useBlocksState.getState();
+  const merged: BlockItem[] = [];
+  (Object.keys(state.stageBlocks) as editorStep[]).forEach(s =>
+    merged.push(...state.stageBlocks[s]),
+  );
+  return merged;
 }
 
 export function addBlock(block: BlockItem) {
@@ -109,32 +145,47 @@ export function addBlock(block: BlockItem) {
 
 export function removeBlock(id: string) {
   // 모든 stage에서 해당 ID의 블록 찾아서 제거
-  Object.keys(stageBlocks).forEach(stage => {
-    removeBlockFromStage(stage as editorStep, id);
+  const state = useBlocksState.getState();
+  (Object.keys(state.stageBlocks) as editorStep[]).forEach(stage => {
+    removeBlockFromStage(stage, id);
   });
 }
 
 export function clearBlocks() {
-  Object.keys(stageBlocks).forEach(stage => {
-    clearBlocksForStage(stage as editorStep);
+  const state = useBlocksState.getState();
+  (Object.keys(state.stageBlocks) as editorStep[]).forEach(stage => {
+    clearBlocksForStage(stage);
   });
 }
 
 export function mutateBlocks(mutator: (draft: BlockItem[]) => void) {
-  // 전체 블록 배열에 대해 뮤테이션 수행
-  mutator(allBlocks);
+  // 전체 블록 배열에 대해 뮤테이션 수행 (Zustand 상태 기반)
+  const state = useBlocksState.getState();
+  const merged: BlockItem[] = [];
+  (Object.keys(state.stageBlocks) as editorStep[]).forEach(s =>
+    merged.push(...state.stageBlocks[s]),
+  );
+
+  mutator(merged);
 
   // 각 stage별로 블록 재분배 (기존 stage 정보 기반)
-  Object.keys(stageBlocks).forEach(stage => {
-    stageBlocks[stage as editorStep] = allBlocks.filter(b => b.stage === stage);
-  });
+  const next: Record<editorStep, BlockItem[]> = {
+    pre: [] as BlockItem[],
+    model: [] as BlockItem[],
+    train: [] as BlockItem[],
+    eval: [] as BlockItem[],
+  };
+  for (const b of merged) {
+    const s = (b.stage || 'pre') as editorStep;
+    next[s].push(b);
+  }
+
+  useBlocksState.setState({ stageBlocks: next });
 
   // 모든 리스너에게 알림
-  listeners.forEach(fn => fn([...allBlocks]));
+  listeners.forEach(fn => fn([...merged]));
   stageListeners.forEach(fn => {
-    Object.keys(stageBlocks).forEach(stage => {
-      fn(stage as editorStep, [...stageBlocks[stage as editorStep]]);
-    });
+    (Object.keys(next) as editorStep[]).forEach(s => fn(s, [...next[s]]));
   });
 }
 
@@ -147,20 +198,23 @@ export function subscribe(fn: Listener) {
 
 // Stage별 블록 개수 조회
 export function getBlockCountForStage(stage: editorStep): number {
-  return stageBlocks[stage].length;
+  const state = useBlocksState.getState();
+  return state.stageBlocks[stage].length;
 }
 
 // end 블럭이 있는지 확인하는 함수
 export function hasEndBlock(stage: editorStep): boolean {
-  return stageBlocks[stage].some(block => block.type === 'end');
+  const state = useBlocksState.getState();
+  return state.stageBlocks[stage].some(block => block.type === 'end');
 }
 
 // 모든 stage의 블록 개수 조회
 export function getAllStageBlockCounts(): Record<editorStep, number> {
+  const state = useBlocksState.getState();
   return {
-    pre: stageBlocks.pre.length,
-    model: stageBlocks.model.length,
-    train: stageBlocks.train.length,
-    eval: stageBlocks.eval.length,
+    pre: state.stageBlocks.pre.length,
+    model: state.stageBlocks.model.length,
+    train: state.stageBlocks.train.length,
+    eval: state.stageBlocks.eval.length,
   };
 }
