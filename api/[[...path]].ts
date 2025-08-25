@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' };
 
-const BACKEND = (globalThis as any).VITE_AI_BACKEND_URL;
+// Edge Function에서 환경변수 접근 (Vercel에서 설정 필요)
+const BACKEND = process.env.VITE_AI_BACKEND_URL || 'http://211.188.56.255:9022';
 if (!BACKEND) throw new Error('VITE_AI_BACKEND_URL is not set');
 
 // 안전한 URL join
