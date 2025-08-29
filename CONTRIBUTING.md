@@ -234,15 +234,16 @@ const userComponent = (props) => {
 - **refactor**: 코드 리팩토링
 - **test**: 테스트 코드 추가 또는 수정
 - **chore**: 빌드 프로세스, 보조 도구 변경 등
+- **hotfix**: 운영 중 발생한 치명적 문제나 보안 취약점의 긴급 수정
 
 ### 예시
 
 ```bash
 # 새로운 기능
-git commit -m "feat(editor): add drag and drop functionality for blocks"
+git commit -m "feat: add drag and drop functionality for blocks"
 
 # 버그 수정
-git commit -m "fix(chat): resolve message sending issue"
+git commit -m "fix: resolve message sending issue"
 
 # 문서 업데이트
 git commit -m "docs(readme): update installation instructions"
